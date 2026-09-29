@@ -63,9 +63,8 @@ body {
 
 .logo-wrapper {
   position: relative;
-  /* Margem negativa aumentada para permitir que a logo sobressaia do cabeçalho sem empurrar os elementos adjacentes */
   margin-bottom: -55px; 
-  z-index: 110;
+  z-index: 20; /* Reduzido para ficar abaixo dos menus/filtros quando estes passam por baixo */
 }
 
 .brand-logo {
@@ -178,7 +177,8 @@ body {
 /* CONTAINER E SEÇÕES */
 .container {
   max-width: 1200px;
-  margin: 2.5rem auto 1.5rem auto; /* Margem superior ajustada para compensar a logo sobreposta */
+  /* Margem superior aumentada para 4.5rem para afastar os filtros da logo sobreposta */
+  margin: 4.5rem auto 1.5rem auto; 
   padding: 0 1rem;
   width: 100%;
   flex-grow: 1;
@@ -197,6 +197,8 @@ body {
   width: 100%;
   overflow: hidden;
   margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 10; /* Mantém o scroll abaixo da logo no fluxo da página */
 }
 
 .category-filter {
@@ -850,18 +852,25 @@ body {
 
 /* MEDIA QUERIES PARA CELULARES */
 @media (max-width: 768px) {
+  .main-header {
+    z-index: 1000; /* Garante que todo o cabeçalho fique acima do conteúdo */
+  }
+
   .logo-wrapper {
-    margin-bottom: -35px; /* Ajuste para mobile */
+    margin-bottom: -35px;
+    z-index: 10; /* Fica abaixo do menu suspenso */
   }
 
   .brand-logo {
-    width: 85px;  /* Tamanho otimizado para telas menores */
+    width: 85px;
     height: 85px;
     border-width: 3px;
   }
 
   .menu-toggle-btn {
     display: block;
+    position: relative;
+    z-index: 1010; /* Garante clique e visibilidade acima de qualquer elemento */
   }
 
   .main-nav {
@@ -874,7 +883,8 @@ body {
     padding: 12px 1rem;
     gap: 8px;
     display: none;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+    z-index: 1005; /* Faz o menu abrir por cima da logo e do scroll */
   }
 
   .main-nav.show {
@@ -897,7 +907,8 @@ body {
   }
 
   .container {
-    margin-top: 2rem;
+    /* Espaçamento superior ajustado no mobile para descolar da logo */
+    margin-top: 3rem; 
   }
 
   .products-grid {
