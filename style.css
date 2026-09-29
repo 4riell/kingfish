@@ -56,30 +56,31 @@ body {
 .brand-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px; /* Aumentado ligeiramente para afastar o texto da logo maior */
   position: relative;
   z-index: 102;
 }
 
 .logo-wrapper {
   position: relative;
-  margin-bottom: -35px; /* Faz a logo ultrapassar e sobrepor o topo/menu inferior */
+  /* Margem negativa aumentada para permitir que a logo sobressaia do cabeçalho sem empurrar os elementos adjacentes */
+  margin-bottom: -55px; 
   z-index: 110;
 }
 
 .brand-logo {
-  width: 85px;          /* Logo ampliada */
-  height: 85px;
+  width: 125px;         /* Aumentado de 85px para 125px */
+  height: 125px;        /* Mantido proporcional à largura */
   border-radius: 50%;
   background-color: var(--white);
   border: 4px solid var(--accent-gold);
-  object-fit: cover;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  object-fit: cover;     /* Garante que a imagem preencha o círculo sem distorcer as proporções */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
   transition: transform 0.3s ease;
 }
 
 .brand-logo:hover {
-  transform: scale(1.06);
+  transform: scale(1.05);
 }
 
 .brand-title h1 {
@@ -850,12 +851,12 @@ body {
 /* MEDIA QUERIES PARA CELULARES */
 @media (max-width: 768px) {
   .logo-wrapper {
-    margin-bottom: -25px;
+    margin-bottom: -35px; /* Ajuste para mobile */
   }
 
   .brand-logo {
-    width: 65px;
-    height: 65px;
+    width: 85px;  /* Tamanho otimizado para telas menores */
+    height: 85px;
     border-width: 3px;
   }
 
