@@ -9,8 +9,8 @@
 :root {
   --primary-blue: #0b3c5d;       /* Azul oceano profundo da Pescados Caparaó */
   --dark-blue: #062235;          /* Azul escuro para rodapé/elementos de fundo */
-  --accent-gold: #f39c12;         /* Amarelo/Dourado de destaque */
-  --accent-gold-hover: #d35400;
+  --accent-gold: #c8a44a;         /* Amarelo/Dourado de destaque */
+  --accent-gold-hover: #c5a350;
   --bg-light: #f4f6f8;
   --text-color: #2c3e50;
   --white: #ffffff;
