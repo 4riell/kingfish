@@ -7,15 +7,15 @@
 }
 
 :root {
-  --primary-blue: #0033cc;
-  --dark-blue: #001f80;
-  --yellow-king: #ffea00;
-  --yellow-hover: #ffd700;
-  --bg-light: #f0f4f8;
-  --text-color: #1a1a1a;
+  --primary-blue: #0b3c5d;       /* Azul oceano profundo da Pescados Caparaó */
+  --dark-blue: #062235;          /* Azul escuro para rodapé/elementos de fundo */
+  --accent-gold: #f39c12;         /* Amarelo/Dourado de destaque */
+  --accent-gold-hover: #d35400;
+  --bg-light: #f4f6f8;
+  --text-color: #2c3e50;
   --white: #ffffff;
   --border-radius: 12px;
-  --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
 }
 
 html, body {
@@ -32,15 +32,14 @@ body {
   flex-direction: column;
 }
 
-/* HEADER COM A IDENTIDADE KING FISH */
+/* HEADER COM LOGO SOBREPOSTA (OVERLAPPING) */
 .main-header {
   background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
   color: var(--white);
-  padding: 0.8rem 1rem;
-  position: sticky;
-  top: 0;
+  padding: 0.6rem 1rem;
+  position: relative; /* Permite o posicionamento da logo em destaque */
   z-index: 100;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .header-container {
@@ -50,112 +49,135 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  position: relative;
 }
 
+/* MARCA E LOGO SOBREPOSTA */
 .brand-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  position: relative;
+  z-index: 102;
+}
+
+.logo-wrapper {
+  position: relative;
+  margin-bottom: -35px; /* Faz a logo ultrapassar e sobrepor o topo/menu inferior */
+  z-index: 110;
 }
 
 .brand-logo {
-  width: 48px;
-  height: 48px;
+  width: 85px;          /* Logo ampliada */
+  height: 85px;
   border-radius: 50%;
-  border: 2px solid var(--yellow-king);
+  background-color: var(--white);
+  border: 4px solid var(--accent-gold);
   object-fit: cover;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.brand-logo:hover {
+  transform: scale(1.06);
 }
 
 .brand-title h1 {
-  font-size: 1.3rem;
-  color: var(--yellow-king);
+  font-size: 1.35rem;
+  color: var(--white);
+  font-weight: 800;
   letter-spacing: 1px;
   line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .brand-title span {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--white);
+  color: var(--accent-gold);
   letter-spacing: 2px;
 }
 
-/* BOTÃO MENU HAMBÚRGUER */
+/* BOTÃO MENU HAMBÚRGUER (MOBILE) */
 .menu-toggle-btn {
   display: none;
   background: transparent;
   border: none;
   color: var(--white);
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: 6px;
 }
 
 .menu-toggle-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 /* NAVEGAÇÃO DESKTOP E MOBILE */
 .main-nav {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .nav-btn {
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--white);
-  padding: 8px 16px;
+  padding: 8px 18px;
   font-weight: 600;
   cursor: pointer;
   border-radius: 20px;
   transition: all 0.3s;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .nav-btn.active, .nav-btn:hover {
-  background-color: var(--yellow-king);
+  background-color: var(--accent-gold);
   color: var(--dark-blue);
+  border-color: var(--accent-gold);
 }
 
 /* BOTÃO DO CARRINHO */
 .cart-toggle-btn {
   position: relative;
-  background-color: var(--yellow-king);
+  background-color: var(--accent-gold);
   color: var(--dark-blue);
   border: none;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 30px;
   font-weight: bold;
   cursor: pointer;
   font-size: 1rem;
-  transition: transform 0.2s;
+  transition: transform 0.2s, background 0.2s;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .cart-toggle-btn:hover {
   transform: scale(1.05);
-  background-color: var(--yellow-hover);
+  background-color: #e67e22;
+  color: var(--white);
 }
 
 .cart-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -6px;
+  right: -6px;
   background-color: #e74c3c;
   color: white;
   border-radius: 50%;
   padding: 2px 7px;
   font-size: 0.75rem;
+  font-weight: 800;
 }
 
 /* CONTAINER E SEÇÕES */
 .container {
   max-width: 1200px;
-  margin: 1.5rem auto;
+  margin: 2.5rem auto 1.5rem auto; /* Margem superior ajustada para compensar a logo sobreposta */
   padding: 0 1rem;
   width: 100%;
   flex-grow: 1;
@@ -196,7 +218,7 @@ body {
 
 .filter-btn {
   background: var(--white);
-  border: 1px solid #ddd;
+  border: 1px solid #dcdfe6;
   padding: 10px 18px;
   border-radius: 25px;
   cursor: pointer;
@@ -232,12 +254,14 @@ body {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   width: 100%;
+  border: 1px solid #eef2f5;
 }
 
 .product-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .product-info {
@@ -250,7 +274,7 @@ body {
 .product-title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--dark-blue);
+  color: var(--primary-blue);
   margin-bottom: 5px;
   text-transform: uppercase;
 }
@@ -263,7 +287,7 @@ body {
 }
 
 .product-price {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: bold;
   color: #27ae60;
   margin-bottom: 10px;
@@ -288,22 +312,26 @@ body {
 .about-card {
   background: var(--white);
   border-radius: var(--border-radius);
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 1.5rem;
   box-shadow: var(--shadow);
   text-align: center;
 }
 
 .about-logo {
-  width: 100px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   margin-bottom: 1rem;
-  border: 4px solid var(--yellow-king);
+  border: 4px solid var(--accent-gold);
+  background: white;
+  object-fit: cover;
 }
 
 .slogan {
   color: var(--primary-blue);
   font-weight: bold;
   margin-bottom: 1.5rem;
+  font-size: 1.1rem;
 }
 
 .info-boxes {
@@ -366,7 +394,7 @@ body {
 }
 
 .footer-links a {
-  color: var(--yellow-king);
+  color: var(--accent-gold);
   text-decoration: none;
   font-weight: 600;
 }
@@ -572,7 +600,7 @@ body {
 /* BARRA SUPERIOR DO ADMIN */
 .admin-bar {
   background-color: var(--dark-blue);
-  color: var(--yellow-king);
+  color: var(--accent-gold);
   padding: 10px 15px;
   border-radius: var(--border-radius);
   margin-bottom: 20px;
@@ -703,7 +731,7 @@ body {
 }
 
 .carousel-dot.active {
-  background: var(--yellow-king);
+  background: var(--accent-gold);
 }
 
 /* DRAG & DROP E EMOJI */
@@ -821,6 +849,16 @@ body {
 
 /* MEDIA QUERIES PARA CELULARES */
 @media (max-width: 768px) {
+  .logo-wrapper {
+    margin-bottom: -25px;
+  }
+
+  .brand-logo {
+    width: 65px;
+    height: 65px;
+    border-width: 3px;
+  }
+
   .menu-toggle-btn {
     display: block;
   }
@@ -832,7 +870,7 @@ body {
     width: 100%;
     background: var(--dark-blue);
     flex-direction: column;
-    padding: 10px 1rem;
+    padding: 12px 1rem;
     gap: 8px;
     display: none;
     box-shadow: 0 5px 10px rgba(0,0,0,0.2);
@@ -855,6 +893,10 @@ body {
 
   .brand-title span {
     font-size: 0.65rem;
+  }
+
+  .container {
+    margin-top: 2rem;
   }
 
   .products-grid {
