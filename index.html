@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pescados Caparaó- Catálogo Digital</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- CABEÇALHO -->
+  <header class="main-header">
+    <div class="header-container">
+      <div class="brand-info">
+        <button class="menu-toggle-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <img src="pescadoscaparao.jpg" alt="Pescados Caparao Logo" class="brand-logo">
+        <div class="brand-title">
+          <h1>PESCADOS CAPARAÓ</h1>
+          <span>PEIXARIA</span>
+        </div>
+      </div>
+
+      <nav class="main-nav" id="main-nav">
+        <button class="nav-btn active" onclick="showSection('catalogo')"><i class="fa-solid fa-store"></i> Catálogo</button>
+        <button class="nav-btn" onclick="showSection('sobre')"><i class="fa-solid fa-circle-info"></i> Sobre Nós</button>
+      </nav>
+
+      <button class="cart-toggle-btn" onclick="toggleCart()">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="cart-badge" id="cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- BARRA DE AÇÕES DO ADMINISTRADOR -->
+    <div id="admin-bar" class="admin-bar" style="display: none;">
+      <div class="admin-status">
+        <i class="fa-solid fa-user-shield"></i> Modo Administrador Ativo
+      </div>
+      <div class="admin-actions">
+        <button class="btn-add-product" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> Adicionar Produto</button>
+        <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+      </div>
+    </div>
+
+    <!-- SEÇÃO: CATÁLOGO -->
+    <section id="sec-catalogo" class="content-section active">
+      <div class="category-filter-wrapper">
+        <div class="category-filter">
+          <button class="filter-btn active" onclick="filterCategory('todos')">Todos</button>
+          <button class="filter-btn" onclick="filterCategory('peixes')"><i class="fa-solid fa-fish"></i> Peixes</button>
+          <button class="filter-btn" onclick="filterCategory('camaroes')"><i class="fa-solid fa-shrimp"></i> Camarões</button>
+          <button class="filter-btn" onclick="filterCategory('crustaceos')"><span class="emoji-icon">🦀</span> Crustáceos</button>
+          <button class="filter-btn" onclick="filterCategory('moluscos')"><i class="fa-solid fa-water"></i> Moluscos</button>
+        </div>
+      </div>
+
+      <div class="products-grid" id="products-container"></div>
+    </section>
+
+    <!-- SEÇÃO: SOBRE NÓS -->
+    <section id="sec-sobre" class="content-section">
+      <div class="about-card">
+        <div class="about-header">
+          <img src="pescadoscaparao.jpg" alt="Pescados Caparao Logo" class="about-logo">
+          <h2>Sobre a Pescados Caparaó</h2>
+          <p class="slogan">Qualidade e frescor direto para a sua mesa!</p>
+        </div>
+        
+        <div class="about-content">
+          <p>Na <strong>Pescados Caparaó</strong>, temos o compromisso de entregar os melhores peixes e frutos do mar com higiene, procedência garantida e o melhor atendimento da região.</p>
+          
+          <div class="info-boxes">
+            <div class="info-box">
+              <i class="fa-solid fa-phone"></i>
+              <h3>Telefones / WhatsApp</h3>
+              <p><a href="https://wa.me/5528999868639" target="_blank" rel="noopener noreferrer" class="contact-link">(28) 99986-8639</a></p>
+            </div>
+
+            <div class="info-box">
+              <i class="fa-brands fa-instagram"></i>
+              <h3>Instagram</h3>
+              <p><a href="https://www.instagram.com/pescadoscaparao/" target="_blank" rel="noopener noreferrer" class="contact-link">@pescadoscaparao</a></p>
+            </div>
+
+            <div class="info-box">
+              <i class="fa-solid fa-location-dot"></i>
+              <h3>Localização</h3>
+              <p><p><a href="https://www.google.com/maps/search/?api=1&query=Pescados+Capara%C3%B3,+Av.+Ol%C3%ADvio+Corr%C3%AAia+Pedrosa,+130+-+Centro,+Alegre+-+ES,+29500-000" target="_blank" rel="noopener noreferrer" class="contact-link">Pescados Caparaó - Av. Olívio Corrêia Pedrosa, 130 - Centro, Alegre - ES</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="main-footer">
+    <div class="footer-container">
+      <p>&copy; 2026 Pescados Caparaó. Todos os direitos reservados.</p>
+      <div class="footer-links">
+        <a href="https://wa.me/5528988037725" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+        <a href="https://www.instagram.com/pescadoscaparao/" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i> Instagram</a>
+        <p><a href="https://www.google.com/maps/search/?api=1&query=Pescados+Capara%C3%B3,+Av.+Ol%C3%ADvio+Corr%C3%AAia+Pedrosa,+130+-+Centro,+Alegre+-+ES,+29500-000" target="_blank" rel="noopener noreferrer" class="contact-link">Pescados Caparaó, Alegre - ES</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- PAINEL LATERAL DO CARRINHO -->
+  <div class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+      <h2><i class="fa-solid fa-basket-shopping"></i> Seu Pedido</h2>
+      <button class="close-cart-btn" onclick="toggleCart()">&times;</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total Estimado:</span>
+        <strong id="cart-total-price">R$ 0,00</strong>
+      </div>
+      <button class="btn-whatsapp" onclick="sendOrderToWhatsApp()">
+        <i class="fa-brands fa-whatsapp"></i> Finalizar no WhatsApp
+      </button>
+    </div>
+  </div>
+  <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+
+  <!-- MODAL DE LOGIN ADMIN (Autenticação Segura) -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-content admin-login-card">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-lock"></i> Autenticação Admin</h2>
+        <button class="close-modal-btn" onclick="closeLoginModal()">&times;</button>
+      </div>
+      <form onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label for="admin-email">E-mail do Administrador:</label>
+          <input type="email" id="admin-email" placeholder="admin@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Senha:</label>
+          <input type="password" id="admin-password" placeholder="Sua senha..." required>
+        </div>
+        <button type="submit" class="btn-primary">Acessar Painel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE CADASTRO E EDIÇÃO DE PRODUTO -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-form-title">Adicionar Produto</h2>
+        <button class="close-modal-btn" onclick="closeProductModal()">&times;</button>
+      </div>
+      
+      <form id="product-form" onsubmit="handleProductSubmit(event)">
+        <input type="hidden" id="prod-id">
+
+        <div class="form-group">
+          <label>Nome do Produto:</label>
+          <input type="text" id="prod-name" placeholder="Ex: Filé de Tilápia" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Categoria:</label>
+            <select id="prod-category" required>
+              <option value="peixes">Peixes</option>
+              <option value="camaroes">Camarões</option>
+              <option value="crustaceos">Crustáceos</option>
+              <option value="moluscos">Moluscos</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Preço (por Kg ou emb.):</label>
+            <input type="number" step="0.01" id="prod-price" placeholder="0.00" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de Unidade / Embalagem:</label>
+          <select id="prod-unit">
+            <option value="Kg">Por Kg (Peso Fracionado)</option>
+            <option value="500g">Pacote 500g</option>
+            <option value="1Kg">Pacote 1Kg</option>
+            <option value="Unidade">Unidade</option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label for="prod-out-of-stock" class="checkbox-label">
+            <input type="checkbox" id="prod-out-of-stock">
+            <span>Marcar produto como <strong>Esgotado</strong></span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Imagens do Produto (Pode escolher várias ou arrastar):</label>
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('prod-images-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+            <p><strong>Clique para buscar</strong> ou arraste e solte as fotos aqui</p>
+            <input type="file" id="prod-images-input" accept="image/*" multiple style="display: none;" onchange="handleImageFileSelect(event)">
+          </div>
+          <div class="images-preview-container" id="images-preview"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Descrição:</label>
+          <textarea id="prod-desc" placeholder="Ex: Filé sem espinho, congelado individualmente..." rows="2"></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btn-save-product">Salvar Produto</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Seguro (Módulo JS) -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
