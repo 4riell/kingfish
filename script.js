@@ -14,7 +14,8 @@ import {
   browserLocalPersistence,
   signInWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -38,13 +39,15 @@ setPersistence(auth, browserLocalPersistence).catch((error) => {
 let cart = [];
 let allProducts = [];
 let allRecipes = [];
+let allRecipeCategories = [];
 let currentCategory = "todos";
+let currentRecipeCategory = "todos";
 let isAdminLoggedIn = false;
 let isAuthResolved = false;
 let currentProductImages = [];
 let currentRecipeImages = [];
+let currentRecipeVideo = null;
 
-// OBSERVADOR DE AUTENTICAÇÃO DO FIREBASE (CORREÇÃO DE LOGIN PERDIDO NO REFRESH)
 onAuthStateChanged(auth, (user) => {
   isAuthResolved = true;
   const adminBar = document.getElementById("admin-bar");
@@ -67,10 +70,30 @@ document.addEventListener("DOMContentLoaded", () => {
   setupRecipeDragAndDrop();
   loadProducts();
   loadRecipes();
+  loadRecipeCategories();
 });
 
+// FUNÇÃO DE ZOOM PARA IMAGENS
+window.setupImageZoom = function(imgElement) {
+  if(!imgElement) return;
+  imgElement.style.transition = "transform 0.15s ease-out";
+  imgElement.style.cursor = "zoom-in";
+  
+  imgElement.addEventListener("mousemove", (e) => {
+    const rect = imgElement.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    imgElement.style.transformOrigin = `${x}% ${y}%`;
+    imgElement.style.transform = "scale(2.2)"; 
+  });
+
+  imgElement.addEventListener("mouseleave", () => {
+    imgElement.style.transformOrigin = "center center";
+    imgElement.style.transform = "scale(1)";
+  });
+};
+
 function checkAdminRouteAccess() {
-  // Executa apenas após o Firebase verificar o estado de login salvo
   if (!isAuthResolved) return;
   const isAdminHash = window.location.hash === "#admin";
   if (isAdminHash && !auth.currentUser) {
@@ -97,6 +120,20 @@ window.handleAdminLogin = async function(e) {
   }
 };
 
+window.recoverPassword = async function() {
+  const email = document.getElementById("admin-email").value;
+  if(!email) {
+    alert("Por favor, digite o e-mail no campo acima primeiro.");
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert("Um e-mail de recuperação de senha foi enviado para você!");
+  } catch(error) {
+    alert("Erro ao enviar e-mail de recuperação: " + error.message);
+  }
+};
+
 window.adminLogout = async function() {
   try {
     await signOut(auth);
@@ -111,47 +148,111 @@ window.closeLoginModal = function() {
   if (loginModal) loginModal.classList.remove("open");
 };
 
+// GERENCIAMENTO DE CATEGORIAS DINÂMICAS PARA RECEITAS
+function loadRecipeCategories() {
+  const catRef = collection(db, "recipe_categories");
+  onSnapshot(catRef, (snapshot) => {
+    allRecipeCategories = [];
+    snapshot.forEach(doc => {
+      allRecipeCategories.push({ id: doc.id, ...doc.data() });
+    });
+    renderRecipeCategories();
+  });
+}
+
+function renderRecipeCategories() {
+  const filterContainer = document.getElementById("recipe-filters");
+  const selectContainer = document.getElementById("recipe-category");
+  const listContainer = document.getElementById("category-list");
+  
+  if (listContainer) {
+    listContainer.innerHTML = "";
+    allRecipeCategories.forEach(cat => {
+      listContainer.innerHTML += `
+        <li style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; align-items:center;">
+          <strong>${cat.name}</strong>
+          <button onclick="deleteRecipeCategory('${cat.id}')" style="color:#e74c3c; background:none; border:none; cursor:pointer; font-size:1.1rem;"><i class="fa-solid fa-trash"></i></button>
+        </li>
+      `;
+    });
+  }
+
+  if (filterContainer) {
+    filterContainer.innerHTML = `<button class="filter-btn active" onclick="filterRecipeCategory('todos')">Todas</button>`;
+    allRecipeCategories.forEach(cat => {
+      filterContainer.innerHTML += `<button class="filter-btn" onclick="filterRecipeCategory('${cat.name}')">${cat.name}</button>`;
+    });
+  }
+
+  if (selectContainer) {
+    const currentVal = selectContainer.value;
+    selectContainer.innerHTML = `<option value="">Selecione...</option>`;
+    allRecipeCategories.forEach(cat => {
+      selectContainer.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+    });
+    if (currentVal) selectContainer.value = currentVal;
+  }
+}
+
+window.openCategoryModal = function() {
+  document.getElementById("category-modal").classList.add("open");
+};
+
+window.closeCategoryModal = function() {
+  document.getElementById("category-modal").classList.remove("open");
+};
+
+window.addRecipeCategory = async function() {
+  const input = document.getElementById("new-category-name");
+  const name = input.value.trim();
+  if (!name) return;
+  try {
+    await addDoc(collection(db, "recipe_categories"), { name: name });
+    input.value = "";
+  } catch (error) {
+    alert("Erro ao adicionar categoria: " + error.message);
+  }
+};
+
+window.deleteRecipeCategory = async function(id) {
+  if (!confirm("Tem certeza que deseja excluir esta categoria?")) return;
+  try {
+    await deleteDoc(doc(db, "recipe_categories", id));
+  } catch (error) {
+    alert("Erro ao excluir: " + error.message);
+  }
+};
+
 function loadProducts() {
   const productsRef = collection(db, "products");
-
   onSnapshot(productsRef, (snapshot) => {
     allProducts = [];
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      if (!data.images) {
-        data.images = data.image ? [data.image] : ["https://via.placeholder.com/300x200?text=Sem+Imagem"];
-      }
+      if (!data.images) data.images = data.image ? [data.image] : ["https://via.placeholder.com/300x200?text=Sem+Imagem"];
       allProducts.push({ ...data, id: docSnap.id });
     });
-
     renderProducts(allProducts);
-  }, (error) => {
-    console.error("Erro ao carregar produtos:", error);
   });
 }
 
 function loadRecipes() {
   const recipesRef = collection(db, "recipes");
-
   onSnapshot(recipesRef, (snapshot) => {
     allRecipes = [];
     snapshot.forEach((docSnap) => {
       allRecipes.push({ ...docSnap.data(), id: docSnap.id });
     });
     renderRecipes(allRecipes);
-  }, (error) => {
-    console.error("Erro ao carregar receitas:", error);
   });
 }
 
 window.filterRecipeCategory = function(category) {
   currentRecipeCategory = category;
   const recipeFilters = document.getElementById("recipe-filters");
-  
   if (recipeFilters) {
     recipeFilters.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
   }
-  
   if (window.event && window.event.currentTarget) {
     window.event.currentTarget.classList.add("active");
   }
@@ -163,7 +264,6 @@ function renderRecipes(recipes) {
   if (!container) return;
   container.innerHTML = "";
 
-  // Aplica o filtro de categorias
   let listToRender = currentRecipeCategory === "todos" 
     ? [...recipes] 
     : recipes.filter(r => r.category === currentRecipeCategory);
@@ -205,7 +305,6 @@ function renderRecipes(recipes) {
       </div>
     ` : "";
 
-    // Adiciona badge da Categoria e do Produto Relacionado no Card
     const categoryBadge = recipe.category ? `<span class="recipe-product-tag" style="background:#f1c40f; color:#333;"><i class="fa-solid fa-tag"></i> ${recipe.category.toUpperCase()}</span>` : '';
     const productBadge = recipe.relatedProduct ? `<span class="recipe-product-tag"><i class="fa-solid fa-fish"></i> ${recipe.relatedProduct}</span>` : '';
 
@@ -232,16 +331,6 @@ function renderRecipes(recipes) {
   });
 }
 
-window.togglePromoInput = function() {
-  const isChecked = document.getElementById("prod-on-sale")?.checked;
-  const promoRow = document.getElementById("promo-price-row");
-  if (promoRow) {
-    promoRow.style.display = isChecked ? "flex" : "none";
-  }
-};
-
-let currentRecipeCategory = "todos";
-
 function renderProducts(products) {
   const container = document.getElementById("products-container");
   if (!container) return;
@@ -253,7 +342,6 @@ function renderProducts(products) {
       ? products.filter(p => p.isOnSale)
       : products.filter(p => p.category === currentCategory);
 
-  // Lógica de ordenação: Promoções no topo, Esgotados no final
   listToRender.sort((a, b) => {
     if (a.isOutOfStock && !b.isOutOfStock) return 1;
     if (!a.isOutOfStock && b.isOutOfStock) return -1;
@@ -272,40 +360,28 @@ function renderProducts(products) {
       openProductDetailModal(product.id);
     };
 
-    let imagesList = [];
-    if (Array.isArray(product.images) && product.images.length > 0) {
-      imagesList = product.images;
-    } else if (product.image) {
-      imagesList = [product.image];
-    } else {
-      imagesList = ["https://via.placeholder.com/300x200?text=Sem+Imagem"];
-    }
-
+    let imagesList = Array.isArray(product.images) && product.images.length > 0 ? product.images : (product.image ? [product.image] : ["https://via.placeholder.com/300x200?text=Sem+Imagem"]);
     const hasMultipleImages = imagesList.length > 1;
     const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${product.name}" class="carousel-img">`).join('');
     
     const dotsHTML = hasMultipleImages 
       ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="event.stopPropagation(); setCarouselSlide('${product.id}',${i})"></span>`).join('')}</div>`
       : '';
-
     const navButtons = hasMultipleImages ? `
       <button type="button" class="carousel-btn prev" onclick="event.stopPropagation(); moveCarousel('${product.id}', -1)"><i class="fa-solid fa-chevron-left"></i></button>
       <button type="button" class="carousel-btn next" onclick="event.stopPropagation(); moveCarousel('${product.id}', 1)"><i class="fa-solid fa-chevron-right"></i></button>
     ` : '';
 
-    let adminControls = "";
-    if (isAdminLoggedIn) {
-      adminControls = `
-        <div class="admin-card-actions" style="margin-top: 15px; display: flex; gap: 8px;">
-          <button class="btn-edit-prod" onclick="event.stopPropagation(); openProductModal('${product.id}')">
-            <i class="fa-solid fa-pen"></i> Editar
-          </button>
-          <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
-            <i class="fa-solid fa-trash"></i> Excluir
-          </button>
-        </div>
-      `;
-    }
+    let adminControls = isAdminLoggedIn ? `
+      <div class="admin-card-actions" style="margin-top: 15px; display: flex; gap: 8px;">
+        <button class="btn-edit-prod" onclick="event.stopPropagation(); openProductModal('${product.id}')">
+          <i class="fa-solid fa-pen"></i> Editar
+        </button>
+        <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
+          <i class="fa-solid fa-trash"></i> Excluir
+        </button>
+      </div>
+    ` : "";
 
     const buyButton = product.isOutOfStock
       ? `<button class="add-cart-btn btn-disabled" disabled><i class="fa-solid fa-ban"></i> Esgotado</button>`
@@ -332,9 +408,7 @@ function renderProducts(products) {
       `;
     }
 
-    const outOfStockBadge = product.isOutOfStock
-      ? `<span class="badge-out-of-stock">ESGOTADO</span>`
-      : '';
+    const outOfStockBadge = product.isOutOfStock ? `<span class="badge-out-of-stock">ESGOTADO</span>` : '';
 
     card.innerHTML = `
       <div class="carousel-container" id="carousel-${product.id}" data-index="0" data-total="${imagesList.length}">
@@ -358,13 +432,11 @@ function renderProducts(products) {
   });
 }
 
-// LÓGICA DO CARROSSEL NOS CARDS
 window.moveCarousel = function(productId, direction) {
   const carousel = document.getElementById(`carousel-${productId}`);
   if (!carousel) return;
   const total = parseInt(carousel.getAttribute("data-total")) || 1;
   let currentIndex = parseInt(carousel.getAttribute("data-index")) || 0;
-
   currentIndex = (currentIndex + direction + total) % total;
   window.setCarouselSlide(productId, currentIndex);
 };
@@ -373,62 +445,35 @@ window.setCarouselSlide = function(productId, index) {
   const carousel = document.getElementById(`carousel-${productId}`);
   const slide = document.getElementById(`slide-${productId}`);
   if (!carousel || !slide) return;
-  
   carousel.setAttribute("data-index", index);
   slide.style.transform = `translateX(-${index * 100}%)`;
-
   const dots = carousel.querySelectorAll(".carousel-dot");
-  dots.forEach((dot, i) => {
-    dot.classList.toggle("active", i === index);
-  });
+  dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
 };
 
 function setupDragAndDrop() {
   const dropZone = document.getElementById("drop-zone");
   if (!dropZone) return;
-
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }, false);
+    dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
   });
-
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-  });
-
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-  });
-
-  dropZone.addEventListener('drop', (e) => {
-    processImageFiles(e.dataTransfer.files);
-  }, false);
+  ['dragenter', 'dragover'].forEach(eventName => { dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false); });
+  ['dragleave', 'drop'].forEach(eventName => { dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false); });
+  dropZone.addEventListener('drop', (e) => { processImageFiles(e.dataTransfer.files); }, false);
 }
 
 function setupRecipeDragAndDrop() {
   const dropZone = document.getElementById("recipe-drop-zone");
   if (!dropZone) return;
-
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }, false);
+    dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
   });
-
-  dropZone.addEventListener('drop', (e) => {
-    processRecipeImageFiles(e.dataTransfer.files);
-  }, false);
+  dropZone.addEventListener('drop', (e) => { processRecipeImageFiles(e.dataTransfer.files); }, false);
 }
 
-window.handleImageFileSelect = function(e) {
-  processImageFiles(e.target.files);
-};
-
-window.handleRecipeImageFileSelect = function(e) {
-  processRecipeImageFiles(e.target.files);
+window.handleImageFileSelect = (e) => processImageFiles(e.target.files);
+window.handleRecipeImageFileSelect = async (event) => {
+  if (event.target.files) await processRecipeImageFiles(event.target.files);
 };
 
 function compressImage(file, maxWidth = 800, quality = 0.7) {
@@ -442,18 +487,14 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
         const canvas = document.createElement("canvas");
         let width = img.width;
         let height = img.height;
-
         if (width > maxWidth) {
           height = Math.round((height * maxWidth) / width);
           width = maxWidth;
         }
-
         canvas.width = width;
         canvas.height = height;
-
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
-
         resolve(canvas.toDataURL("image/jpeg", quality));
       };
     };
@@ -482,7 +523,6 @@ function renderImagePreviews() {
   const previewContainer = document.getElementById("images-preview");
   if (!previewContainer) return;
   previewContainer.innerHTML = "";
-
   currentProductImages.forEach((imgBase64, index) => {
     const thumb = document.createElement("div");
     thumb.className = "preview-thumb";
@@ -498,7 +538,6 @@ function renderRecipeImagePreviews() {
   const container = document.getElementById("recipe-images-preview");
   if (!container) return;
   container.innerHTML = "";
-
   currentRecipeImages.forEach((imgSrc, index) => {
     const thumb = document.createElement("div");
     thumb.className = "preview-thumb";
@@ -510,27 +549,8 @@ function renderRecipeImagePreviews() {
   });
 }
 
-window.removeRecipeImage = function(index) {
-  currentRecipeImages.splice(index, 1);
-  renderRecipeImagePreviews();
-};
-
-window.handleRecipeImageFileSelect = async function(event) {
-  const files = event.target.files;
-  if (files) {
-    await processRecipeImageFiles(files);
-  }
-};
-
-window.removeImagePreview = function(index) {
-  currentProductImages.splice(index, 1);
-  renderImagePreviews();
-};
-
-window.removeRecipeImagePreview = function(index) {
-  currentRecipeImages.splice(index, 1);
-  renderRecipeImagePreviews();
-};
+window.removeImagePreview = (index) => { currentProductImages.splice(index, 1); renderImagePreviews(); };
+window.removeRecipeImage = (index) => { currentRecipeImages.splice(index, 1); renderRecipeImagePreviews(); };
 
 window.openProductModal = function(productId = null) {
   const modal = document.getElementById("admin-modal");
@@ -538,10 +558,9 @@ window.openProductModal = function(productId = null) {
   const title = document.getElementById("modal-form-title");
 
   if (productId) {
-    title.innerText = "";
+    title.innerText = "Editar Produto";
     const prod = allProducts.find(p => p.id === productId);
     if (!prod) return;
-
     document.getElementById("prod-id").value = prod.id;
     document.getElementById("prod-name").value = prod.name;
     document.getElementById("prod-category").value = prod.category;
@@ -551,10 +570,9 @@ window.openProductModal = function(productId = null) {
     document.getElementById("prod-desc").value = prod.desc || "";
     document.getElementById("prod-out-of-stock").checked = !!prod.isOutOfStock;
     document.getElementById("prod-on-sale").checked = !!prod.isOnSale;
-
     currentProductImages = prod.images ? [...prod.images] : (prod.image ? [prod.image] : []);
   } else {
-    title.innerText = "";
+    title.innerText = "Adicionar Produto";
     form.reset();
     document.getElementById("prod-id").value = "";
     document.getElementById("prod-promo-price").value = "";
@@ -562,54 +580,42 @@ window.openProductModal = function(productId = null) {
     document.getElementById("prod-on-sale").checked = false;
     currentProductImages = [];
   }
-
   window.togglePromoInput();
   renderImagePreviews();
   modal.classList.add("open");
 };
 
-window.closeProductModal = function() {
-  const modal = document.getElementById("admin-modal");
-  if (modal) modal.classList.remove("open");
+window.closeProductModal = () => document.getElementById("admin-modal")?.classList.remove("open");
+window.togglePromoInput = () => {
+  const isChecked = document.getElementById("prod-on-sale")?.checked;
+  const promoRow = document.getElementById("promo-price-row");
+  if (promoRow) promoRow.style.display = isChecked ? "flex" : "none";
 };
 
-// Variável de controle do vídeo em base64
-let currentRecipeVideo = null; 
-
-// Atualizar função de popular select (aplica o filtro de categoria)
 window.populateRecipeProductSelect = function(categoryFilter = null) {
   const select = document.getElementById("recipe-prod-select");
   if (!select) return;
-  
   select.innerHTML = '<option value="">Nenhum produto associado</option>';
-  
   let filteredProducts = allProducts;
   if (categoryFilter && categoryFilter !== "outros") {
     filteredProducts = allProducts.filter(p => p.category === categoryFilter);
   }
-  
   filteredProducts.forEach(prod => {
     select.innerHTML += `<option value="${prod.name}" data-category="${prod.category}">${prod.name}</option>`;
   });
 };
 
-// Logica de upload e preview do vídeo da receita
 window.handleRecipeVideoFileSelect = function(event) {
   const file = event.target.files[0];
   if (!file || !file.type.startsWith('video/')) return;
-  
   const reader = new FileReader();
-  reader.onload = (e) => {
-    currentRecipeVideo = e.target.result;
-    renderRecipeVideoPreview();
-  };
-  reader.readAsDataURL(file); // Vídeos curtos serão passados para base64
+  reader.onload = (e) => { currentRecipeVideo = e.target.result; renderRecipeVideoPreview(); };
+  reader.readAsDataURL(file);
 };
 
 function renderRecipeVideoPreview() {
   const container = document.getElementById("recipe-video-preview");
   if (!container) return;
-  
   if (currentRecipeVideo) {
     container.innerHTML = `
       <div class="preview-thumb" style="width: 140px; height: 90px; border-radius: 8px;">
@@ -622,38 +628,36 @@ function renderRecipeVideoPreview() {
   }
 }
 
-window.removeRecipeVideo = function() {
+window.removeRecipeVideo = () => {
   currentRecipeVideo = null;
   document.getElementById("recipe-video-input").value = "";
   renderRecipeVideoPreview();
 };
 
-// Ajuste a função openRecipeModal
 window.openRecipeModal = function() {
   document.getElementById("recipe-id-input").value = "";
   document.getElementById("recipe-modal-title").innerText = "Adicionar Receita";
   document.getElementById("recipe-form").reset();
-  document.getElementById("recipe-category").value = "peixes"; 
-  
   currentRecipeImages = [];
   currentRecipeVideo = null;
-  
   renderRecipeImagePreviews();
   renderRecipeVideoPreview();
-  populateRecipeProductSelect("peixes"); // Filtra ao abrir
-  
+  populateRecipeProductSelect(""); 
   const modal = document.getElementById("recipe-modal");
   if (modal) modal.classList.add("open");
 };
 
-// Ajuste a função editRecipe
+// Nova função para fechar o Modal de Receita
+window.closeRecipeModal = function() {
+  document.getElementById("recipe-modal")?.classList.remove("open");
+};
+
 window.editRecipe = function(recipeId) {
   const recipe = allRecipes.find(r => r.id === recipeId);
   if (!recipe) return;
-  
-  const category = recipe.category || "outros";
+  const category = recipe.category || "";
   document.getElementById("recipe-category").value = category;
-  populateRecipeProductSelect(category); // Filtra os produtos pela categoria
+  populateRecipeProductSelect(category);
 
   document.getElementById("recipe-id-input").value = recipe.id;
   document.getElementById("recipe-modal-title").innerText = "Editar Receita";
@@ -668,30 +672,26 @@ window.editRecipe = function(recipeId) {
   
   renderRecipeImagePreviews();
   renderRecipeVideoPreview();
-  
   window.closeRecipeDetailModal();
-  const modal = document.getElementById("recipe-modal");
-  if (modal) modal.classList.add("open");
+  document.getElementById("recipe-modal")?.classList.add("open");
 };
 
-// Ajuste a função handleRecipeSubmit para salvar a descrição e o vídeo
 window.handleRecipeSubmit = async function(e) {
   e.preventDefault();
   if (!auth.currentUser) return;
-
   const saveBtn = document.getElementById("btn-save-recipe");
   if (saveBtn) { saveBtn.innerText = "Salvando..."; saveBtn.disabled = true; }
 
   const recipeId = document.getElementById("recipe-id-input").value;
   const recipeData = {
     title: document.getElementById("recipe-title").value.toUpperCase(),
-    description: document.getElementById("recipe-desc-input").value, // Novo campo
+    description: document.getElementById("recipe-desc-input").value,
     category: document.getElementById("recipe-category").value,
     relatedProduct: document.getElementById("recipe-prod-select").value,
     ingredients: document.getElementById("recipe-ingredients").value,
     instructions: document.getElementById("recipe-instructions").value,
     images: currentRecipeImages,
-    video: currentRecipeVideo // Novo campo
+    video: currentRecipeVideo
   };
 
   try {
@@ -710,16 +710,13 @@ window.handleRecipeSubmit = async function(e) {
   }  
 };
 
-// Criar a função que renderiza o modal estilo Folha A4
 window.openRecipeDetailModal = function(recipeId) {
   const recipe = allRecipes.find(r => r.id === recipeId);
   if (!recipe) return;
 
   const modal = document.getElementById("recipe-detail-modal");
-  
   document.getElementById("modal-recipe-title").innerText = recipe.title;
   
-  // 1. Exibir Descrição
   const descElement = document.getElementById("modal-recipe-desc");
   if (recipe.description) {
     descElement.innerText = recipe.description;
@@ -728,7 +725,6 @@ window.openRecipeDetailModal = function(recipeId) {
     descElement.style.display = "none";
   }
 
-  // 2. Exibir Vídeo
   const videoContainer = document.getElementById("modal-recipe-video-container");
   if (recipe.video) {
     videoContainer.innerHTML = `<video controls src="${recipe.video}" style="width:100%; max-height:400px; border-radius:8px; object-fit:cover; background:#000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></video>`;
@@ -739,26 +735,26 @@ window.openRecipeDetailModal = function(recipeId) {
   }
 
   document.getElementById("modal-recipe-tag").innerHTML = recipe.relatedProduct 
-    ? `<span class="recipe-sheet-tag"><i class="fa-solid fa-fish"></i> Ingrediente Principal: ${recipe.relatedProduct}</span>` 
+    ? `<span class="recipe-sheet-tag" style="background:#f1c40f; padding:5px 10px; border-radius:12px; font-weight:bold;"><i class="fa-solid fa-fish"></i> Ingrediente Principal: ${recipe.relatedProduct}</span>` 
     : "";
 
-  // 3. Organizar Imagens
   const media1 = document.getElementById("modal-recipe-media-1");
   const media2 = document.getElementById("modal-recipe-media-2");
   
   let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : []);
   
   if (imagesList.length > 0) {
-    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">`;
+    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit:cover;">`;
     media1.style.display = "block";
+    setupImageZoom(media1.querySelector('img')); // Aplica o zoom!
   } else {
     media1.style.display = "none";
   }
 
   if (imagesList.length > 1) {
-    // Se houver mais de uma foto, a última vai para o final do modal
-    media2.innerHTML = `<img src="${imagesList[imagesList.length - 1]}" alt="Prato Finalizado">`;
+    media2.innerHTML = `<img src="${imagesList[imagesList.length - 1]}" alt="Prato Finalizado" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit:cover;">`;
     media2.style.display = "block";
+    setupImageZoom(media2.querySelector('img')); // Aplica o zoom!
   } else {
     media2.style.display = "none";
   }
@@ -772,55 +768,32 @@ window.openRecipeDetailModal = function(recipeId) {
 window.closeRecipeDetailModal = function() {
   const modal = document.getElementById("recipe-detail-modal");
   if (modal) modal.classList.remove("open");
-  
-  // Pausa vídeos quando fechar o modal
   const videoContainer = document.getElementById("modal-recipe-video-container");
   if (videoContainer) videoContainer.innerHTML = "";
 };
 
 window.deleteRecipe = async function(id) {
-  if (!auth.currentUser) {
-    alert("Ação não permitida.");
-    return;
-  }
-
+  if (!auth.currentUser) return alert("Ação não permitida.");
   if (!confirm("Tem certeza que deseja excluir esta receita?")) return;
-
   try {
     await deleteDoc(doc(db, "recipes", id));
     alert("Receita removida com sucesso!");
   } catch (error) {
-    console.error("Erro ao excluir receita:", error);
     alert("Erro ao excluir receita: " + error.message);
   }
 };
 
 window.handleProductSubmit = async function(e) {
   e.preventDefault();
-
-  if (!auth.currentUser) {
-    alert("Você precisa estar autenticado como administrador para alterar produtos.");
-    return;
-  }
-
-  if (currentProductImages.length === 0) {
-    alert("Por favor, adicione pelo menos uma imagem do produto.");
-    return;
-  }
-
+  if (!auth.currentUser) return alert("Acesso negado.");
+  if (currentProductImages.length === 0) return alert("Adicione pelo menos uma imagem.");
+  
   const isOnSale = document.getElementById("prod-on-sale").checked;
   const promoPriceVal = parseFloat(document.getElementById("prod-promo-price").value);
-
-  if (isOnSale && (isNaN(promoPriceVal) || promoPriceVal <= 0)) {
-    alert("Por favor, insira um preço de promoção válido.");
-    return;
-  }
+  if (isOnSale && (isNaN(promoPriceVal) || promoPriceVal <= 0)) return alert("Preço de promoção inválido.");
 
   const saveBtn = document.getElementById("btn-save-product");
-  if (saveBtn) {
-    saveBtn.innerText = "Salvando...";
-    saveBtn.disabled = true;
-  }
+  if (saveBtn) { saveBtn.innerText = "Salvando..."; saveBtn.disabled = true; }
 
   const id = document.getElementById("prod-id").value;
   const prodData = {
@@ -836,142 +809,89 @@ window.handleProductSubmit = async function(e) {
   };
 
   try {
-    if (id && id.trim() !== "") {
-      await updateDoc(doc(db, "products", id), prodData);
-    } else {
-      await addDoc(collection(db, "products"), prodData);
-    }
-
+    if (id && id.trim() !== "") await updateDoc(doc(db, "products", id), prodData);
+    else await addDoc(collection(db, "products"), prodData);
     alert("Produto salvo com sucesso!");
     window.closeProductModal();
   } catch (error) {
-    console.error("Detalhes do erro ao salvar:", error);
     alert(`Erro ao salvar: ${error.message}`);
   } finally {
-    if (saveBtn) {
-      saveBtn.innerText = "Salvar Produto";
-      saveBtn.disabled = false;
-    }
+    if (saveBtn) { saveBtn.innerText = "Salvar Produto"; saveBtn.disabled = false; }
   }
 };
 
 window.deleteProduct = async function(id) {
-  if (!auth.currentUser) {
-    alert("Ação não permitida.");
-    return;
-  }
-
+  if (!auth.currentUser) return alert("Ação não permitida.");
   if (!confirm("Tem certeza que deseja excluir este produto?")) return;
-
   try {
     await deleteDoc(doc(db, "products", id));
     alert("Produto removido com sucesso!");
   } catch (error) {
-    console.error("Erro ao excluir produto:", error);
     alert("Erro ao excluir produto: " + error.message);
   }
 };
 
 window.filterCategory = function(category) {
   currentCategory = category;
-  document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
-  
-  if (window.event && window.event.currentTarget) {
-    window.event.currentTarget.classList.add("active");
-  }
+  document.querySelectorAll("#sec-catalogo .filter-btn").forEach(btn => btn.classList.remove("active"));
+  if (window.event && window.event.currentTarget) window.event.currentTarget.classList.add("active");
   renderProducts(allProducts);
 };
 
 window.addToCart = function(productId) {
   const product = allProducts.find(p => p.id === productId);
-  
-  if (product && product.isOutOfStock) {
-    alert("Desculpe, este produto está esgotado no momento.");
-    return;
-  }
-
+  if (product && product.isOutOfStock) return alert("Produto esgotado.");
   const finalPrice = (product.isOnSale && product.promoPrice) ? Number(product.promoPrice) : Number(product.price);
   const cartProduct = { ...product, price: finalPrice };
-
   const existingItem = cart.find(item => item.id === productId);
-
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    cart.push({ ...cartProduct, quantity: 1 });
-  }
-
+  if (existingItem) existingItem.quantity += 1;
+  else cart.push({ ...cartProduct, quantity: 1 });
   updateCartUI();
   window.toggleCart(true);
 };
-// FUNÇÕES DO FORMULÁRIO DE ENTREGA / VIA CEP
-window.toggleDeliveryFields = function() {
+
+window.toggleDeliveryFields = () => {
   const type = document.getElementById("checkout-type")?.value;
   const deliveryFields = document.getElementById("delivery-fields");
-  if (deliveryFields) {
-    deliveryFields.style.display = type === "entrega" ? "block" : "none";
-  }
+  if (deliveryFields) deliveryFields.style.display = type === "entrega" ? "block" : "none";
   updateCartUI();
 };
 
-window.toggleTrocoField = function() {
+window.toggleTrocoField = () => {
   const payment = document.getElementById("checkout-pagamento")?.value;
   const trocoGroup = document.getElementById("troco-group");
-  if (trocoGroup) {
-    trocoGroup.style.display = payment === "dinheiro" ? "block" : "none";
-  }
+  if (trocoGroup) trocoGroup.style.display = payment === "dinheiro" ? "block" : "none";
 };
 
-window.toggleNoNumber = function(checkbox) {
+window.toggleNoNumber = (checkbox) => {
   const numInput = document.getElementById("checkout-numero");
   if (numInput) {
-    if (checkbox.checked) {
-      numInput.value = "S/N";
-      numInput.disabled = true;
-    } else {
-      numInput.value = "";
-      numInput.disabled = false;
-    }
+    if (checkbox.checked) { numInput.value = "S/N"; numInput.disabled = true; } 
+    else { numInput.value = ""; numInput.disabled = false; }
   }
 };
 
 window.fetchAddressByCEP = async function() {
   const cepInput = document.getElementById("checkout-cep");
   if (!cepInput) return;
-  
   const cep = cepInput.value.replace(/\D/g, "");
-  if (cep.length !== 8) {
-    if (cep.length > 0) alert("CEP inválido! Digite 8 números.");
-    return;
-  }
-
+  if (cep.length !== 8) return;
   try {
     const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
     const data = await response.json();
-
-    if (data.erro) {
-      alert("CEP não encontrado. Por favor, preencha o endereço manualmente.");
-      return;
-    }
-
+    if (data.erro) return alert("CEP não encontrado.");
     document.getElementById("checkout-cidade").value = `${data.localidade} - ${data.uf}`;
     document.getElementById("checkout-bairro").value = data.bairro || "";
     document.getElementById("checkout-rua").value = data.logradouro || "";
   } catch (error) {
-    console.error("Erro ao buscar CEP:", error);
-    alert("Não foi possível consultar o CEP. Preencha manualmente.");
+    alert("Não foi possível consultar o CEP.");
   }
 };
 
 window.sendOrderToWhatsApp = function() {
-  if (cart.length === 0) {
-    alert("Seu carrinho está vazio!");
-    return;
-  }
-
+  if (cart.length === 0) return alert("Seu carrinho está vazio!");
   const deliveryType = document.getElementById("checkout-type")?.value;
   let deliveryDetails = "";
-  // Taxa fixa calculada automaticamente
   const taxaDelivery = deliveryType === "entrega" ? 5.00 : 0;
 
   if (deliveryType === "entrega") {
@@ -982,20 +902,8 @@ window.sendOrderToWhatsApp = function() {
     const numero = document.getElementById("checkout-numero")?.value.trim();
     const complemento = document.getElementById("checkout-complemento")?.value.trim();
     const referencia = document.getElementById("checkout-referencia")?.value.trim();
-
-    if (!cep || !cidade || !bairro || !rua || !numero || !referencia) {
-      alert("Por favor, preencha todos os campos obrigatórios de entrega.");
-      return;
-    }
-
-    deliveryDetails = `
-*Tipo:* Entrega
-*CEP:* ${cep}
-*Cidade:* ${cidade}
-*Bairro:* ${bairro}
-*Rua:* ${rua}, Nº ${numero}
-*Complemento:* ${complemento || "Nenhum"}
-*Ponto de Referência:* ${referencia}`;
+    if (!cep || !cidade || !bairro || !rua || !numero || !referencia) return alert("Preencha todos os campos obrigatórios.");
+    deliveryDetails = `\n*Tipo:* Entrega\n*CEP:* ${cep}\n*Cidade:* ${cidade}\n*Bairro:* ${bairro}\n*Rua:* ${rua}, Nº ${numero}\n*Complemento:* ${complemento || "Nenhum"}\n*Ponto de Referência:* ${referencia}`;
   } else {
     deliveryDetails = `\n*Tipo:* Retirada no Balcão`;
   }
@@ -1003,361 +911,150 @@ window.sendOrderToWhatsApp = function() {
   const pagamento = document.getElementById("checkout-pagamento")?.value.toUpperCase();
   const troco = document.getElementById("checkout-troco")?.value.trim();
   const obs = document.getElementById("checkout-obs")?.value.trim();
-
-  if (!pagamento) {
-    alert("Por favor, selecione a forma de pagamento.");
-    return;
-  }
-
-  if (pagamento === "DINHEIRO" && !troco) {
-    alert("Por favor, informe se precisa de troco (ou digite 'Não precisa').");
-    return;
-  }
+  if (!pagamento) return alert("Selecione a forma de pagamento.");
+  if (pagamento === "DINHEIRO" && !troco) return alert("Informe se precisa de troco.");
 
   let message = "*NOVO PEDIDO - PESCADOS CAPARAÓ*\n\n*ITENS DO PEDIDO:*\n";
   let itemsTotal = 0;
-
   cart.forEach(item => {
     const subtotal = item.price * item.quantity;
     itemsTotal += subtotal;
     message += `• *${item.name}*\n  Qtd/Peso: ${item.quantity} ${item.unit} | R$ ${subtotal.toFixed(2)}\n`;
   });
-
   const totalGeral = itemsTotal + taxaDelivery;
 
-  message += `\n*RESUMO DA COMPRA:*`;
-  message += `\nSubtotal: R$ ${itemsTotal.toFixed(2)}`;
-  if (deliveryType === "entrega") {
-    message += `\nTaxa de Entrega: R$ ${taxaDelivery.toFixed(2)}`;
-  }
-  message += `\n*Total Geral:* R$ ${totalGeral.toFixed(2)}`;
+  message += `\n*RESUMO DA COMPRA:*\nSubtotal: R$ ${itemsTotal.toFixed(2)}`;
+  if (deliveryType === "entrega") message += `\nTaxa de Entrega: R$ ${taxaDelivery.toFixed(2)}`;
+  message += `\n*Total Geral:* R$ ${totalGeral.toFixed(2)}\n\n*DADOS DE ENTREGA:*${deliveryDetails}\n\n*PAGAMENTO:*\n*Forma:* ${pagamento}`;
+  if (pagamento === "DINHEIRO" && troco) message += `\n*Troco para:* ${troco}`;
+  if (obs) message += `\n\n*OBSERVAÇÕES:*\n${obs}`;
 
-  message += `\n\n*DADOS DE ENTREGA:*${deliveryDetails}`;
-  message += `\n\n*PAGAMENTO:*`;
-  message += `\n*Forma:* ${pagamento}`;
-  if (pagamento === "DINHEIRO" && troco) {
-    message += `\n*Troco para:* ${troco}`;
-  }
-
-  if (obs) {
-    message += `\n\n*OBSERVAÇÕES:*\n${obs}`;
-  }
-
-  const phoneNumber = "5528999868639";
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-  
-  window.open(whatsappUrl, "_blank");
+  window.open(`https://wa.me/5528999868639?text=${encodeURIComponent(message)}`, "_blank");
 };
 
-window.updateQuantity = function(index, value) {
-  cart[index].quantity = parseFloat(value) || 1;
-  updateCartUI();
-};
+window.updateQuantity = (index, value) => { cart[index].quantity = parseFloat(value) || 1; updateCartUI(); };
+window.removeFromCart = (index) => { cart.splice(index, 1); updateCartUI(); };
 
-window.removeFromCart = function(index) {
-  cart.splice(index, 1);
-  updateCartUI();
-};
-
-window.toggleCart = function(forceOpen = false) {
+window.toggleCart = (forceOpen = false) => {
   const sidebar = document.getElementById("cart-sidebar");
   const overlay = document.getElementById("cart-overlay");
   if (!sidebar || !overlay) return;
-  
-  if (forceOpen || !sidebar.classList.contains("open")) {
-    sidebar.classList.add("open");
-    overlay.classList.add("open");
-  } else {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("open");
-  }
+  if (forceOpen || !sidebar.classList.contains("open")) { sidebar.classList.add("open"); overlay.classList.add("open"); } 
+  else { sidebar.classList.remove("open"); overlay.classList.remove("open"); }
 };
 
-window.toggleMobileMenu = function() {
-  const nav = document.getElementById("main-nav");
-  if (nav) nav.classList.toggle("show");
-};
-
-window.showSection = function(sectionId) {
+window.showSection = (sectionId) => {
   document.querySelectorAll(".content-section").forEach(sec => sec.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
-
-  const targetSec = document.getElementById(`sec-${sectionId}`);
-  if (targetSec) targetSec.classList.add("active");
-
-  if (window.event && window.event.currentTarget) {
-    window.event.currentTarget.classList.add("active");
-  }
-  const nav = document.getElementById("main-nav");
-  if (nav) nav.classList.remove("show");
+  document.getElementById(`sec-${sectionId}`)?.classList.add("active");
+  if (window.event && window.event.currentTarget) window.event.currentTarget.classList.add("active");
+  document.getElementById("main-nav")?.classList.remove("show");
 };
 
-// MODAIS DE DETALHES (PRODUTOS E RECEITAS)
 window.openProductDetailModal = function(productId) {
   const prod = allProducts.find(p => p.id === productId);
   if (!prod) return;
-
   const modal = document.getElementById("product-detail-modal");
   document.getElementById("modal-product-title").innerText = prod.name;
   document.getElementById("modal-product-desc").innerText = prod.desc || "Sem descrição disponível.";
 
   const mediaContainer = document.getElementById("modal-product-media");
-  
-  let imagesList = [];
-  if (Array.isArray(prod.images) && prod.images.length > 0) {
-    imagesList = prod.images;
-  } else if (prod.image) {
-    imagesList = [prod.image];
-  } else {
-    imagesList = ["https://via.placeholder.com/300x200?text=Sem+Imagem"];
-  }
+  let imagesList = Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : (prod.image ? [prod.image] : ["https://via.placeholder.com/300x200?text=Sem+Imagem"]);
+  const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${prod.name}" class="carousel-img" style="object-fit:cover;">`).join('');
+  const dotsHTML = imagesList.length > 1 ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setModalCarouselSlide(${i})"></span>`).join('')}</div>` : '';
+  const navButtons = imagesList.length > 1 ? `<button type="button" class="carousel-btn prev" onclick="moveModalCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button><button type="button" class="carousel-btn next" onclick="moveModalCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>` : '';
 
-  const hasMultiple = imagesList.length > 1;
-  const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${prod.name}" class="carousel-img">`).join('');
-  const dotsHTML = hasMultiple 
-    ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setModalCarouselSlide(${i})"></span>`).join('')}</div>`
-    : '';
-  const navButtons = hasMultiple ? `
-    <button type="button" class="carousel-btn prev" onclick="moveModalCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-    <button type="button" class="carousel-btn next" onclick="moveModalCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>
-  ` : '';
+  mediaContainer.innerHTML = `<div class="carousel-container" id="modal-carousel" data-index="0" data-total="${imagesList.length}"><div class="carousel-slide" id="modal-carousel-slide">${slidesHTML}</div>${navButtons}${dotsHTML}</div>`;
 
-  mediaContainer.innerHTML = `
-    <div class="carousel-container" id="modal-carousel" data-index="0" data-total="${imagesList.length}">
-      <div class="carousel-slide" id="modal-carousel-slide">
-        ${slidesHTML}
-      </div>
-      ${navButtons}
-      ${dotsHTML}
-    </div>
-  `;
+  // Aplica o Zoom nas imagens do Modal do Produto!
+  const modalImgs = mediaContainer.querySelectorAll('.carousel-img');
+  modalImgs.forEach(img => setupImageZoom(img));
 
   const priceContainer = document.getElementById("modal-product-price");
   if (prod.isOnSale && prod.promoPrice && Number(prod.promoPrice) < Number(prod.price)) {
-    priceContainer.innerHTML = `
-      <div class="price-container">
-        <span class="old-price">R$ ${Number(prod.price).toFixed(2)}</span>
-        <span class="product-price promo">R$ ${Number(prod.promoPrice).toFixed(2)} <small>/ ${prod.unit}</small></span>
-      </div>
-    `;
+    priceContainer.innerHTML = `<div class="price-container"><span class="old-price">R$ ${Number(prod.price).toFixed(2)}</span><span class="product-price promo">R$ ${Number(prod.promoPrice).toFixed(2)} <small>/ ${prod.unit}</small></span></div>`;
   } else {
     priceContainer.innerHTML = `<div class="product-price">R$ ${Number(prod.price).toFixed(2)} <small>/ ${prod.unit}</small></div>`;
   }
 
   const buyBtn = document.getElementById("modal-product-buy-btn");
   if (prod.isOutOfStock) {
-    buyBtn.className = "add-cart-btn btn-disabled";
-    buyBtn.disabled = true;
-    buyBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Esgotado`;
+    buyBtn.className = "add-cart-btn btn-disabled"; buyBtn.disabled = true; buyBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Esgotado`;
   } else {
-    buyBtn.className = "add-cart-btn";
-    buyBtn.disabled = false;
-    buyBtn.innerHTML = `<i class="fa-solid fa-cart-shopping"></i> Adicionar ao Carrinho`;
-    buyBtn.onclick = () => {
-      addToCart(prod.id);
-      closeProductDetailModal();
-    };
+    buyBtn.className = "add-cart-btn"; buyBtn.disabled = false; buyBtn.innerHTML = `<i class="fa-solid fa-cart-shopping"></i> Adicionar ao Carrinho`;
+    buyBtn.onclick = () => { addToCart(prod.id); closeProductDetailModal(); };
   }
-
   if (modal) modal.classList.add("open");
 };
 
-// CONTROLES DO CARROSSEL DENTRO DO MODAL
-window.moveModalCarousel = function(direction) {
+window.moveModalCarousel = (direction) => {
   const carousel = document.getElementById("modal-carousel");
   if (!carousel) return;
   const total = parseInt(carousel.getAttribute("data-total")) || 1;
-  let currentIndex = parseInt(carousel.getAttribute("data-index")) || 0;
-
-  currentIndex = (currentIndex + direction + total) % total;
-  window.setModalCarouselSlide(currentIndex);
+  window.setModalCarouselSlide((parseInt(carousel.getAttribute("data-index")) || 0 + direction + total) % total);
 };
 
-window.setModalCarouselSlide = function(index) {
+window.setModalCarouselSlide = (index) => {
   const carousel = document.getElementById("modal-carousel");
   const slide = document.getElementById("modal-carousel-slide");
   if (!carousel || !slide) return;
-
   carousel.setAttribute("data-index", index);
   slide.style.transform = `translateX(-${index * 100}%)`;
-
-  const dots = carousel.querySelectorAll(".carousel-dot");
-  dots.forEach((dot, i) => {
-    dot.classList.toggle("active", i === index);
-  });
+  carousel.querySelectorAll(".carousel-dot").forEach((dot, i) => dot.classList.toggle("active", i === index));
 };
 
-window.closeProductDetailModal = function() {
-  const modal = document.getElementById("product-detail-modal");
-  if (modal) modal.classList.remove("open");
-};
+window.closeProductDetailModal = () => document.getElementById("product-detail-modal")?.classList.remove("open");
+window.openAboutModal = () => document.getElementById("about-modal")?.classList.add("open");
+window.closeAboutModal = () => document.getElementById("about-modal")?.classList.remove("open");
 
-window.openRecipeDetailModal = function(recipeId) {
-  const recipe = allRecipes.find(r => r.id === recipeId);
-  if (!recipe) return;
-
-  const modal = document.getElementById("recipe-detail-modal");
-  document.getElementById("modal-recipe-title").innerText = recipe.title;
-
-  const tagContainer = document.getElementById("modal-recipe-tag");
-  let tagsHTML = "";
-  if (recipe.category) tagsHTML += `<span class="recipe-product-tag" style="background:#f1c40f; color:#333; margin-right:5px;"><i class="fa-solid fa-tag"></i> ${recipe.category.toUpperCase()}</span>`;
-  if (recipe.relatedProduct) tagsHTML += `<span class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></span>`;
-  tagContainer.innerHTML = tagsHTML;
-
-  document.getElementById("modal-recipe-ingredients").innerText = recipe.ingredients || "Sem ingredientes cadastrados.";
-  document.getElementById("modal-recipe-instructions").innerText = recipe.instructions || "Sem modo de preparo cadastrado.";
-
-  const mediaContainer = document.getElementById("modal-recipe-media");
-  let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : ["https://via.placeholder.com/300x200?text=Receita"]);
-  
-  const hasMultiple = imagesList.length > 1;
-  const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${recipe.title}" class="carousel-img">`).join('');
-  const dotsHTML = hasMultiple 
-    ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setModalCarouselSlideRecipe(${i})"></span>`).join('')}</div>`
-    : '';
-  const navButtons = hasMultiple ? `
-    <button type="button" class="carousel-btn prev" onclick="moveModalCarouselRecipe(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-    <button type="button" class="carousel-btn next" onclick="moveModalCarouselRecipe(1)"><i class="fa-solid fa-chevron-right"></i></button>
-  ` : '';
-
-  mediaContainer.innerHTML = `
-    <div class="carousel-container" id="modal-recipe-carousel" data-index="0" data-total="${imagesList.length}">
-      <div class="carousel-slide" id="modal-recipe-carousel-slide">
-        ${slidesHTML}
-      </div>
-      ${navButtons}
-      ${dotsHTML}
-    </div>
-  `;
-
-  if (modal) modal.classList.add("open");
-};
-
-window.closeRecipeDetailModal = function() {
-  const modal = document.getElementById("recipe-detail-modal");
-  if (modal) modal.classList.remove("open");
-};
-
-window.moveModalCarouselRecipe = function(direction) {
-  const carousel = document.getElementById("modal-recipe-carousel");
-  if (!carousel) return;
-  const total = parseInt(carousel.getAttribute("data-total")) || 1;
-  let currentIndex = parseInt(carousel.getAttribute("data-index")) || 0;
-  currentIndex = (currentIndex + direction + total) % total;
-  window.setModalCarouselSlideRecipe(currentIndex);
-};
-
-window.setModalCarouselSlideRecipe = function(index) {
-  const carousel = document.getElementById("modal-recipe-carousel");
-  const slide = document.getElementById("modal-recipe-carousel-slide");
-  if (!carousel || !slide) return;
-  carousel.setAttribute("data-index", index);
-  slide.style.transform = `translateX(-${index * 100}%)`;
-  const dots = carousel.querySelectorAll(".carousel-dot");
-  dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
-};
-
-window.closeRecipeDetailModal = function() {
-  const modal = document.getElementById("recipe-detail-modal");
-  if (modal) modal.classList.remove("open");
-};
-
-window.openAboutModal = function() {
-  const modal = document.getElementById("about-modal");
-  if (modal) modal.classList.add("open");
-};
-
-window.closeAboutModal = function() {
-  const modal = document.getElementById("about-modal");
-  if (modal) modal.classList.remove("open");
-};
-// Alterna a exibição do menu mobile evitando propagação do clique
-window.toggleMobileMenu = function(event) {
+window.toggleMobileMenu = (event) => {
   if (event) event.stopPropagation();
-  const nav = document.getElementById("main-nav");
-  if (nav) nav.classList.toggle("show");
+  document.getElementById("main-nav")?.classList.toggle("show");
 };
 
-// Evento global para fechar o menu hambúrguer ao clicar fora dele
 window.addEventListener("click", (event) => {
-  // Fechar menu mobile
   const nav = document.getElementById("main-nav");
   const toggleBtn = document.getElementById("menu-toggle-btn");
-
-  if (nav && nav.classList.contains("show")) {
-    if (!nav.contains(event.target) && (!toggleBtn || !toggleBtn.contains(event.target))) {
-      nav.classList.remove("show");
-    }
+  if (nav && nav.classList.contains("show") && !nav.contains(event.target) && (!toggleBtn || !toggleBtn.contains(event.target))) {
+    nav.classList.remove("show");
   }
-
-  // Fechar modais ao clicar no overlay escuro
-  if (event.target.classList.contains("modal-overlay")) {
-    event.target.classList.remove("open");
-  }
+  if (event.target.classList.contains("modal-overlay")) event.target.classList.remove("open");
 });
 
-// ABRIR E FECHAR O MODAL DE ENTREGA
-window.openDeliveryModal = function() {
-  if (cart.length === 0) {
-    alert("Seu carrinho está vazio!");
-    return;
-  }
-  // Fecha a gaveta lateral do carrinho
+window.openDeliveryModal = () => {
+  if (cart.length === 0) return alert("Seu carrinho está vazio!");
   toggleCart(false);
-  
-  // Abre o modal de entrega
-  const modal = document.getElementById("delivery-modal");
-  if (modal) modal.classList.add("open");
-
-  // Atualiza os valores dentro do modal
+  document.getElementById("delivery-modal")?.classList.add("open");
   updateCartUI();
 };
+window.closeDeliveryModal = () => document.getElementById("delivery-modal")?.classList.remove("open");
 
-window.closeDeliveryModal = function() {
-  const modal = document.getElementById("delivery-modal");
-  if (modal) modal.classList.remove("open");
-};
-
-// ATUALIZAR FUNÇÃO updateCartUI DENTRO DO SCRIPT
 function updateCartUI() {
   const cartItemsContainer = document.getElementById("cart-items");
   const cartCount = document.getElementById("cart-count");
   const cartTotal = document.getElementById("cart-total-price");
   const modalTotal = document.getElementById("modal-total-price");
-
   if (!cartItemsContainer) return;
   cartItemsContainer.innerHTML = "";
-  let itemsSubtotal = 0;
-  let itemCount = 0;
+  let itemsSubtotal = 0, itemCount = 0;
 
   cart.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
-    itemsSubtotal += itemTotal;
-    itemCount += 1;
-
-    const div = document.createElement("div");
-    div.className = "cart-item";
-    div.innerHTML = `
-      <div class="cart-item-header">
-        <span>${item.name}</span>
-        <span>R$ ${itemTotal.toFixed(2)}</span>
-      </div>
-      <div class="cart-item-controls">
-        <label>Qtd (${item.unit}):</label>
-        <input type="number" step="0.1" min="0.1" value="${item.quantity}" onchange="updateQuantity(${index}, this.value)">
-        <button onclick="removeFromCart(${index})" style="color:#76190f; background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+    itemsSubtotal += itemTotal; itemCount += 1;
+    cartItemsContainer.innerHTML += `
+      <div class="cart-item">
+        <div class="cart-item-header"><span>${item.name}</span><span>R$ ${itemTotal.toFixed(2)}</span></div>
+        <div class="cart-item-controls">
+          <label>Qtd (${item.unit}):</label>
+          <input type="number" step="0.1" min="0.1" value="${item.quantity}" onchange="updateQuantity(${index}, this.value)">
+          <button onclick="removeFromCart(${index})" style="color:#76190f; background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+        </div>
       </div>
     `;
-    cartItemsContainer.appendChild(div);
   });
 
-  const deliveryType = document.getElementById("checkout-type")?.value || "entrega";
-  const taxa = deliveryType === "entrega" ? 5.00 : 0;
-  const totalGeral = itemsSubtotal + taxa;
-
+  const taxa = (document.getElementById("checkout-type")?.value || "entrega") === "entrega" ? 5.00 : 0;
   if (cartCount) cartCount.innerText = itemCount;
   if (cartTotal) cartTotal.innerText = `R$ ${itemsSubtotal.toFixed(2)}`;
-  if (modalTotal) modalTotal.innerText = `R$ ${totalGeral.toFixed(2)}`;
+  if (modalTotal) modalTotal.innerText = `R$ ${(itemsSubtotal + taxa).toFixed(2)}`;
 }

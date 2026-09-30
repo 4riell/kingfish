@@ -58,6 +58,7 @@
       <div class="admin-actions">
         <button class="btn-add-product" onclick="openProductModal()">Adicionar Produto</button>
         <button class="btn-add-product" onclick="openRecipeModal()">Adicionar Receita</button>
+        <button class="btn-add-product" onclick="openCategoryModal()" style="background-color: #8e44ad;">Categorias (Receitas)</button>
         <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
@@ -82,12 +83,9 @@
     
     <section id="sec-receitas" class="content-section">
       <div class="category-filter-wrapper">
+        <!-- FILTROS GERADOS DINAMICAMENTE PELO JS -->
         <div class="category-filter" id="recipe-filters">
           <button class="filter-btn active" onclick="filterRecipeCategory('todos')">Todas</button>
-          <button class="filter-btn" onclick="filterRecipeCategory('peixes')"><i class="fa-solid fa-fish"></i> Peixes</button>          
-          <button class="filter-btn" onclick="filterRecipeCategory('camaroes')"><i class="fa-solid fa-shrimp"></i> Camarões</button>
-          <button class="filter-btn" onclick="filterRecipeCategory('crustaceos')"><span class="emoji-icon">🦀</span> Crustáceos</button>
-          <button class="filter-btn" onclick="filterRecipeCategory('moluscos')"><i class="fa-solid fa-water"></i> Moluscos</button>
         </div>
       </div>
       <div class="recipes-grid" id="recipes-container"></div>
@@ -236,7 +234,6 @@
         <span>Total Produtos:</span>
         <strong id="cart-total-price">R$ 0,00</strong>
       </div>
-      <!-- Agora este botão abre o modal de entrega -->
       <button class="btn-whatsapp" onclick="openDeliveryModal()">
         <i class="fa-solid fa-truck-fast"></i> Finalizar Pedido
       </button>
@@ -261,7 +258,30 @@
           <input type="password" id="admin-password" placeholder="Sua senha..." required>
         </div>
         <button type="submit" class="btn-primary">Acessar Painel</button>
+        <div style="text-align: center; margin-top: 15px;">
+          <button type="button" onclick="recoverPassword()" style="background:none; border:none; color:var(--primary-blue); text-decoration:underline; cursor:pointer; font-size: 0.9rem;">Esqueceu ou deseja alterar a senha?</button>
+        </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL GERENCIAR CATEGORIAS RECEITAS -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Gerenciar Categorias (Receitas)</h2>
+        <button class="close-modal-btn" onclick="closeCategoryModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Adicionar Nova Categoria:</label>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="new-category-name" placeholder="Ex: Sopas">
+          <button class="btn-primary" style="width:auto;" onclick="addRecipeCategory()">Adicionar</button>
+        </div>
+      </div>
+      <ul id="category-list" style="list-style:none; padding:0; margin-top:15px;">
+        <!-- Lista carregada dinamicamente -->
+      </ul>
     </div>
   </div>
 
@@ -373,16 +393,13 @@
       <div class="form-group">
         <label for="recipe-category">Categoria da Receita:</label>
         <select id="recipe-category" required onchange="populateRecipeProductSelect(this.value)">
-          <option value="peixes">Peixes</option>
-          <option value="camaroes">Camarões</option>
-          <option value="crustaceos">Crustáceos</option>
-          <option value="moluscos">Moluscos</option>
-          <option value="outros">Outros / Diversos</option>
+          <option value="">Selecione...</option>
+          <!-- Options geradas dinamicamente via JS -->
         </select>
       </div>
 
       <div class="form-group">
-        <label for="recipe-prod-select">Produto Relacionado (Filtro por categoria):</label>
+        <label for="recipe-prod-select">Produto Relacionado:</label>
         <select id="recipe-prod-select">
           <option value="">Nenhum produto associado</option>
           <!-- Opções carregadas dinamicamente via JS -->
@@ -421,17 +438,16 @@
         <div class="images-preview-container" id="recipe-images-preview"></div>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn-cancel" onclick="closeRecipeModal()">Cancelar</button>
-        <button type="submit" class="btn-save" id="btn-save-recipe">Salvar Receita</button>
+      <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
+        <button type="button" class="btn-cancel" onclick="closeRecipeModal()" style="flex:1; padding:10px; border-radius:6px; background:#e74c3c; color:white; border:none; cursor:pointer; font-weight:bold;">Cancelar</button>
+        <button type="submit" class="btn-save" id="btn-save-recipe" style="flex:1; padding:10px; border-radius:6px; background:var(--primary-blue); color:white; border:none; cursor:pointer; font-weight:bold;">Salvar Receita</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- MODAL DE DETALHES DA RECEITA (FOLHA A4 E ORDENAÇÃO) -->
+<!-- MODAL DE DETALHES DA RECEITA -->
 <div class="modal-overlay" id="recipe-detail-modal">
-  <!-- Adicionado ID específico para focar os estilos de papel A4 -->
   <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet">
     <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
       <h2 id="modal-recipe-title" class="recipe-sheet-title" style="text-align: center; width: 100%;">Detalhes da Receita</h2>
@@ -450,8 +466,8 @@
         <div id="modal-recipe-tag"></div>
       </div>
 
-      <!-- 3. PRIMEIRA IMAGEM (ANTES DO MODO DE PREPARO) -->
-      <div class="modal-detail-media recipe-sheet-media" id="modal-recipe-media-1" style="margin-top: 15px;"></div>
+      <!-- 3. PRIMEIRA IMAGEM -->
+      <div class="modal-detail-media recipe-sheet-media" id="modal-recipe-media-1" style="margin-top: 15px; overflow:hidden;"></div>
       
       <!-- 4. CONTEÚDO DA RECEITA -->
       <div style="margin-top: 20px;">
@@ -463,8 +479,8 @@
         <p id="modal-recipe-instructions" class="modal-desc"></p>
       </div>
 
-      <!-- 5. SEGUNDA IMAGEM (NO FIM, SE HOUVER) -->
-      <div class="modal-detail-media recipe-sheet-final" id="modal-recipe-media-2" style="margin-top: 30px;"></div>
+      <!-- 5. SEGUNDA IMAGEM -->
+      <div class="modal-detail-media recipe-sheet-final" id="modal-recipe-media-2" style="margin-top: 30px; overflow:hidden;"></div>
       
     </div>
   </div>
@@ -478,7 +494,7 @@
         <button class="close-modal-btn" onclick="closeProductDetailModal()">&times;</button>
       </div>
       <div class="modal-detail-body">
-        <div class="modal-detail-media" id="modal-product-media"></div>
+        <div class="modal-detail-media" id="modal-product-media" style="overflow:hidden;"></div>
         <div class="modal-detail-info">
           <p id="modal-product-desc" class="modal-desc"></p>
           <div id="modal-product-price"></div>
@@ -588,7 +604,6 @@
     </div>
   </div>
 
-  <!-- JavaScript Seguro -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
