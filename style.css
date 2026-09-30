@@ -938,3 +938,34 @@ body {
     gap: 0;
   }
 }
+
+/* Badge / Selo de Promoção */
+.badge-on-sale {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #e63946;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Destaque para cards em Promoção */
+.product-card.on-sale {
+  border: 2px solid #e63946;
+}
+
+/* Botão de filtro de promoção destacado */
+.promo-filter-btn {
+  color: #e63946;
+  font-weight: bold;
+}
+
+.promo-filter-btn.active {
+  background-color: #e63946;
+  color: #fff;
+}

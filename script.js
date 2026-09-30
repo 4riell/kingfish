@@ -125,13 +125,16 @@ function renderProducts(products) {
   if (!container) return;
   container.innerHTML = "";
 
+  // Filtra por categoria padrão ou pela flag 'isOnSale' se for 'promocoes'
   const listToRender = currentCategory === "todos" 
     ? products 
-    : products.filter(p => p.category === currentCategory);
+    : currentCategory === "promocoes"
+      ? products.filter(p => p.isOnSale)
+      : products.filter(p => p.category === currentCategory);
 
   listToRender.forEach((product) => {
     const card = document.createElement("div");
-    card.className = `product-card ${product.isOutOfStock ? 'out-of-stock' : ''}`;
+    card.className = `product-card ${product.isOutOfStock ? 'out-of-stock' : ''} ${product.isOnSale ? 'on-sale' : ''}`;
     
     const imagesList = (product.images && product.images.length > 0) 
       ? product.images 
@@ -163,13 +166,18 @@ function renderProducts(products) {
       ? `<button class="add-cart-btn btn-disabled" disabled><i class="fa-solid fa-ban"></i> Esgotado</button>`
       : `<button class="add-cart-btn" onclick="addToCart('${product.id}')"><i class="fa-solid fa-plus"></i> Adicionar</button>`;
 
+    // Selos/Badges de Esgotado e Promoção
     const outOfStockBadge = product.isOutOfStock
       ? `<span class="badge-out-of-stock">ESGOTADO</span>`
+      : '';
+    const saleBadge = product.isOnSale
+      ? `<span class="badge-on-sale"><i class="fa-solid fa-tag"></i> PROMOÇÃO</span>`
       : '';
 
     card.innerHTML = `
       <div class="carousel-container" id="carousel-${product.id}" data-index="0" data-total="${imagesList.length}">
         ${outOfStockBadge}
+        ${saleBadge}
         <div class="carousel-slide" id="slide-${product.id}">
           ${slidesHTML}
         </div>
@@ -317,6 +325,7 @@ window.openProductModal = function(productId = null) {
     document.getElementById("prod-unit").value = prod.unit;
     document.getElementById("prod-desc").value = prod.desc || "";
     document.getElementById("prod-out-of-stock").checked = !!prod.isOutOfStock;
+    document.getElementById("prod-on-sale").checked = !!prod.isOnSale;
 
     currentProductImages = prod.images ? [...prod.images] : (prod.image ? [prod.image] : []);
   } else {
@@ -324,6 +333,7 @@ window.openProductModal = function(productId = null) {
     form.reset();
     document.getElementById("prod-id").value = "";
     document.getElementById("prod-out-of-stock").checked = false;
+    document.getElementById("prod-on-sale").checked = false;
     currentProductImages = [];
   }
 
@@ -362,7 +372,8 @@ window.handleProductSubmit = async function(e) {
     unit: document.getElementById("prod-unit").value,
     images: currentProductImages,
     desc: document.getElementById("prod-desc").value,
-    isOutOfStock: document.getElementById("prod-out-of-stock").checked
+    isOutOfStock: document.getElementById("prod-out-of-stock").checked,
+    isOnSale: document.getElementById("prod-on-sale").checked
   };
 
   try {

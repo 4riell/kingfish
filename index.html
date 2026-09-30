@@ -62,6 +62,7 @@
       <div class="category-filter-wrapper">
         <div class="category-filter">
           <button class="filter-btn active" onclick="filterCategory('todos')">Todos</button>
+          <button class="filter-btn promo-filter-btn" onclick="filterCategory('promocoes')"><i class="fa-solid fa-tag"></i> Promoções</button>
           <button class="filter-btn" onclick="filterCategory('peixes')"><i class="fa-solid fa-fish"></i> Peixes</button>
           <button class="filter-btn" onclick="filterCategory('camaroes')"><i class="fa-solid fa-shrimp"></i> Camarões</button>
           <button class="filter-btn" onclick="filterCategory('crustaceos')"><span class="emoji-icon">🦀</span> Crustáceos</button>
@@ -204,6 +205,10 @@
         </div>
 
         <div class="form-group checkbox-group">
+          <label for="prod-on-sale" class="checkbox-label" style="margin-right: 15px;">
+            <input type="checkbox" id="prod-on-sale">
+            <span>Colocar produto em <strong>Promoção</strong></span>
+          </label>
           <label for="prod-out-of-stock" class="checkbox-label">
             <input type="checkbox" id="prod-out-of-stock">
             <span>Marcar produto como <strong>Esgotado</strong></span>
