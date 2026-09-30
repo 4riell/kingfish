@@ -109,10 +109,11 @@ function loadProducts() {
       if (!data.images) {
         data.images = data.image ? [data.image] : ["https://via.placeholder.com/300x200?text=Sem+Imagem"];
       }
-      allProducts.push({ id: docSnap.id, ...data });
+      
+      // Armazena o ID REAL do documento Firestore (garantindo que não seja sobrescrito pelo data.id interno)
+      allProducts.push({ ...data, id: docSnap.id });
     });
 
-    // Renderiza diretamente os produtos cadastrados no Firestore
     renderProducts(allProducts);
   }, (error) => {
     console.error("Erro ao carregar produtos:", error);
@@ -307,6 +308,8 @@ window.openProductModal = function(productId = null) {
   if (productId) {
     title.innerText = "Editar Produto";
     const prod = allProducts.find(p => p.id === productId);
+    if (!prod) return;
+
     document.getElementById("prod-id").value = prod.id;
     document.getElementById("prod-name").value = prod.name;
     document.getElementById("prod-category").value = prod.category;
@@ -363,11 +366,9 @@ window.handleProductSubmit = async function(e) {
   };
 
   try {
-    // Se o ID existir e não estiver vazio, ATUALIZA o registo existente
     if (id && id.trim() !== "") {
       await updateDoc(doc(db, "products", id), prodData);
     } else {
-      // Se não houver ID (produto novo), ADICIONA um novo documento
       await addDoc(collection(db, "products"), prodData);
     }
 
