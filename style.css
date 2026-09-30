@@ -1509,3 +1509,34 @@ body {
   border: 3px solid white;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
+
+/* AJUSTES PARA O MODAL DA RECEITA VIRAR UMA FOLHA A4 NO DESKTOP */
+@media (min-width: 769px) {
+  #recipe-a4-sheet {
+    width: 210mm; /* Padrão de largura A4 */
+    max-width: 95vw;
+    min-height: 297mm; /* Padrão de altura A4 */
+    margin: 2rem auto !important;
+    padding: 3rem; 
+    background-color: #fffdf8; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3), inset 0 0 50px rgba(0,0,0,0.03);
+    border-radius: 4px;
+    border-left: 6px solid var(--accent-gold);
+    background-image: 
+      linear-gradient(90deg, rgba(200, 164, 74, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px; /* Efeito sutil de textura de caderno/pauta */
+  }
+
+  .recipe-sheet-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+  }
+}
+
+.recipe-sheet-desc {
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  color: #555;
+  line-height: 1.6;
+  margin: 10px 0 25px 0;
+}

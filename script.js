@@ -538,7 +538,7 @@ window.openProductModal = function(productId = null) {
   const title = document.getElementById("modal-form-title");
 
   if (productId) {
-    title.innerText = "Editar Produto";
+    title.innerText = "";
     const prod = allProducts.find(p => p.id === productId);
     if (!prod) return;
 
@@ -554,7 +554,7 @@ window.openProductModal = function(productId = null) {
 
     currentProductImages = prod.images ? [...prod.images] : (prod.image ? [prod.image] : []);
   } else {
-    title.innerText = "Adicionar Produto";
+    title.innerText = "";
     form.reset();
     document.getElementById("prod-id").value = "";
     document.getElementById("prod-promo-price").value = "";
@@ -573,77 +573,125 @@ window.closeProductModal = function() {
   if (modal) modal.classList.remove("open");
 };
 
-// Preenche o select dinamicamente
-function populateRecipeProductSelect() {
+// Variável de controle do vídeo em base64
+let currentRecipeVideo = null; 
+
+// Atualizar função de popular select (aplica o filtro de categoria)
+window.populateRecipeProductSelect = function(categoryFilter = null) {
   const select = document.getElementById("recipe-prod-select");
   if (!select) return;
+  
   select.innerHTML = '<option value="">Nenhum produto associado</option>';
-  allProducts.forEach(prod => {
+  
+  let filteredProducts = allProducts;
+  if (categoryFilter && categoryFilter !== "outros") {
+    filteredProducts = allProducts.filter(p => p.category === categoryFilter);
+  }
+  
+  filteredProducts.forEach(prod => {
     select.innerHTML += `<option value="${prod.name}" data-category="${prod.category}">${prod.name}</option>`;
   });
+};
+
+// Logica de upload e preview do vídeo da receita
+window.handleRecipeVideoFileSelect = function(event) {
+  const file = event.target.files[0];
+  if (!file || !file.type.startsWith('video/')) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    currentRecipeVideo = e.target.result;
+    renderRecipeVideoPreview();
+  };
+  reader.readAsDataURL(file); // Vídeos curtos serão passados para base64
+};
+
+function renderRecipeVideoPreview() {
+  const container = document.getElementById("recipe-video-preview");
+  if (!container) return;
+  
+  if (currentRecipeVideo) {
+    container.innerHTML = `
+      <div class="preview-thumb" style="width: 140px; height: 90px; border-radius: 8px;">
+        <video src="${currentRecipeVideo}" style="width:100%; height:100%; object-fit:cover;"></video>
+        <button type="button" class="preview-thumb-remove" onclick="removeRecipeVideo()">&times;</button>
+      </div>
+    `;
+  } else {
+    container.innerHTML = "";
+  }
 }
 
+window.removeRecipeVideo = function() {
+  currentRecipeVideo = null;
+  document.getElementById("recipe-video-input").value = "";
+  renderRecipeVideoPreview();
+};
+
+// Ajuste a função openRecipeModal
 window.openRecipeModal = function() {
   document.getElementById("recipe-id-input").value = "";
   document.getElementById("recipe-modal-title").innerText = "Adicionar Receita";
   document.getElementById("recipe-form").reset();
-  document.getElementById("recipe-category").value = "peixes"; // Valor padrão
+  document.getElementById("recipe-category").value = "peixes"; 
+  
   currentRecipeImages = [];
+  currentRecipeVideo = null;
+  
   renderRecipeImagePreviews();
-  populateRecipeProductSelect(); 
+  renderRecipeVideoPreview();
+  populateRecipeProductSelect("peixes"); // Filtra ao abrir
   
   const modal = document.getElementById("recipe-modal");
   if (modal) modal.classList.add("open");
 };
 
+// Ajuste a função editRecipe
 window.editRecipe = function(recipeId) {
   const recipe = allRecipes.find(r => r.id === recipeId);
   if (!recipe) return;
   
-  populateRecipeProductSelect();
+  const category = recipe.category || "outros";
+  document.getElementById("recipe-category").value = category;
+  populateRecipeProductSelect(category); // Filtra os produtos pela categoria
 
   document.getElementById("recipe-id-input").value = recipe.id;
   document.getElementById("recipe-modal-title").innerText = "Editar Receita";
   document.getElementById("recipe-title").value = recipe.title || "";
-  document.getElementById("recipe-category").value = recipe.category || "outros"; // Puxa a categoria salva
+  document.getElementById("recipe-desc-input").value = recipe.description || "";
   document.getElementById("recipe-prod-select").value = recipe.relatedProduct || "";
-  // Se existir campo de descrição simples, adicione: document.getElementById("recipe-desc-input").value = recipe.description || "";
   document.getElementById("recipe-ingredients").value = recipe.ingredients || "";
   document.getElementById("recipe-instructions").value = recipe.instructions || "";
 
-  if (Array.isArray(recipe.images) && recipe.images.length > 0) {
-    currentRecipeImages = [...recipe.images];
-  } else if (recipe.image) {
-    currentRecipeImages = [recipe.image];
-  } else {
-    currentRecipeImages = [];
-  }
+  currentRecipeImages = Array.isArray(recipe.images) ? [...recipe.images] : (recipe.image ? [recipe.image] : []);
+  currentRecipeVideo = recipe.video || null;
   
   renderRecipeImagePreviews();
-  closeRecipeDetailModal();
+  renderRecipeVideoPreview();
+  
+  window.closeRecipeDetailModal();
   const modal = document.getElementById("recipe-modal");
   if (modal) modal.classList.add("open");
 };
 
+// Ajuste a função handleRecipeSubmit para salvar a descrição e o vídeo
 window.handleRecipeSubmit = async function(e) {
   e.preventDefault();
-  if (!auth.currentUser) {
-    alert("Você precisa estar autenticado como administrador para salvar receitas.");
-    return;
-  }
+  if (!auth.currentUser) return;
 
   const saveBtn = document.getElementById("btn-save-recipe");
   if (saveBtn) { saveBtn.innerText = "Salvando..."; saveBtn.disabled = true; }
 
   const recipeId = document.getElementById("recipe-id-input").value;
-  
   const recipeData = {
     title: document.getElementById("recipe-title").value.toUpperCase(),
-    category: document.getElementById("recipe-category").value, // Pega do novo select explicitamente
+    description: document.getElementById("recipe-desc-input").value, // Novo campo
+    category: document.getElementById("recipe-category").value,
     relatedProduct: document.getElementById("recipe-prod-select").value,
     ingredients: document.getElementById("recipe-ingredients").value,
     instructions: document.getElementById("recipe-instructions").value,
-    images: currentRecipeImages
+    images: currentRecipeImages,
+    video: currentRecipeVideo // Novo campo
   };
 
   try {
@@ -656,16 +704,78 @@ window.handleRecipeSubmit = async function(e) {
     }
     window.closeRecipeModal();
   } catch (error) {
-    console.error("Erro ao salvar receita:", error);
     alert(`Erro ao salvar: ${error.message}`);
   } finally {
     if (saveBtn) { saveBtn.innerText = "Salvar Receita"; saveBtn.disabled = false; }
   }  
 };
 
-window.closeRecipeModal = function() {
-  const modal = document.getElementById("recipe-modal");
+// Criar a função que renderiza o modal estilo Folha A4
+window.openRecipeDetailModal = function(recipeId) {
+  const recipe = allRecipes.find(r => r.id === recipeId);
+  if (!recipe) return;
+
+  const modal = document.getElementById("recipe-detail-modal");
+  
+  document.getElementById("modal-recipe-title").innerText = recipe.title;
+  
+  // 1. Exibir Descrição
+  const descElement = document.getElementById("modal-recipe-desc");
+  if (recipe.description) {
+    descElement.innerText = recipe.description;
+    descElement.style.display = "block";
+  } else {
+    descElement.style.display = "none";
+  }
+
+  // 2. Exibir Vídeo
+  const videoContainer = document.getElementById("modal-recipe-video-container");
+  if (recipe.video) {
+    videoContainer.innerHTML = `<video controls src="${recipe.video}" style="width:100%; max-height:400px; border-radius:8px; object-fit:cover; background:#000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></video>`;
+    videoContainer.style.display = "block";
+  } else {
+    videoContainer.innerHTML = "";
+    videoContainer.style.display = "none";
+  }
+
+  document.getElementById("modal-recipe-tag").innerHTML = recipe.relatedProduct 
+    ? `<span class="recipe-sheet-tag"><i class="fa-solid fa-fish"></i> Ingrediente Principal: ${recipe.relatedProduct}</span>` 
+    : "";
+
+  // 3. Organizar Imagens
+  const media1 = document.getElementById("modal-recipe-media-1");
+  const media2 = document.getElementById("modal-recipe-media-2");
+  
+  let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : []);
+  
+  if (imagesList.length > 0) {
+    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">`;
+    media1.style.display = "block";
+  } else {
+    media1.style.display = "none";
+  }
+
+  if (imagesList.length > 1) {
+    // Se houver mais de uma foto, a última vai para o final do modal
+    media2.innerHTML = `<img src="${imagesList[imagesList.length - 1]}" alt="Prato Finalizado">`;
+    media2.style.display = "block";
+  } else {
+    media2.style.display = "none";
+  }
+
+  document.getElementById("modal-recipe-ingredients").innerHTML = recipe.ingredients ? recipe.ingredients.replace(/\n/g, '<br>') : "";
+  document.getElementById("modal-recipe-instructions").innerHTML = recipe.instructions ? recipe.instructions.replace(/\n/g, '<br>') : "";
+
+  if (modal) modal.classList.add("open");
+};
+
+window.closeRecipeDetailModal = function() {
+  const modal = document.getElementById("recipe-detail-modal");
   if (modal) modal.classList.remove("open");
+  
+  // Pausa vídeos quando fechar o modal
+  const videoContainer = document.getElementById("modal-recipe-video-container");
+  if (videoContainer) videoContainer.innerHTML = "";
 };
 
 window.deleteRecipe = async function(id) {
