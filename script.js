@@ -57,14 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
 function checkAdminRouteAccess() {
   const isAdminHash = window.location.hash === "#admin";
 
-  if (isAdminHash) {
-    if (!auth.currentUser) {
-      document.getElementById("login-modal").classList.add("open");
-    }
-  } else {
-    if (auth.currentUser) {
-      signOut(auth);
-    }
+  // Se o usuário acessar a URL com #admin e não estiver logado, abre a modal de login
+  if (isAdminHash && !auth.currentUser) {
+    document.getElementById("login-modal").classList.add("open");
   }
 }
 

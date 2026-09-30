@@ -34,6 +34,7 @@ body {
 
 /* HEADER COM LOGO SOBREPOSTA (OVERLAPPING) */
 .main-header {
+  border-bottom: 4px solid var(--accent-gold);
   background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
   color: var(--white);
   padding: 0.6rem 1rem;
