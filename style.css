@@ -38,7 +38,7 @@ body {
   background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
   color: var(--white);
   padding: 0.6rem 1rem;
-  position: relative; /* Permite o posicionamento da logo em destaque */
+  position: relative;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
@@ -57,7 +57,7 @@ body {
 .brand-info {
   display: flex;
   align-items: center;
-  gap: 16px; /* Aumentado ligeiramente para afastar o texto da logo maior */
+  gap: 16px;
   position: relative;
   z-index: 102;
 }
@@ -65,16 +65,16 @@ body {
 .logo-wrapper {
   position: relative;
   margin-bottom: -55px; 
-  z-index: 20; /* Reduzido para ficar abaixo dos menus/filtros quando estes passam por baixo */
+  z-index: 20;
 }
 
 .brand-logo {
-  width: 125px;         /* Aumentado de 85px para 125px */
-  height: 125px;        /* Mantido proporcional à largura */
+  width: 125px;
+  height: 125px;
   border-radius: 50%;
   background-color: var(--white);
   border: 4px solid var(--accent-gold);
-  object-fit: cover;     /* Garante que a imagem preencha o círculo sem distorcer as proporções */
+  object-fit: cover;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
   transition: transform 0.3s ease;
 }
@@ -178,7 +178,6 @@ body {
 /* CONTAINER E SEÇÕES */
 .container {
   max-width: 1200px;
-  /* Margem superior aumentada para 4.5rem para afastar os filtros da logo sobreposta */
   margin: 4.5rem auto 1.5rem auto; 
   padding: 0 1rem;
   width: 100%;
@@ -199,7 +198,7 @@ body {
   overflow: hidden;
   margin-bottom: 1.5rem;
   position: relative;
-  z-index: 10; /* Mantém o scroll abaixo da logo no fluxo da página */
+  z-index: 10;
 }
 
 .category-filter {
@@ -310,6 +309,69 @@ body {
 
 .add-cart-btn:hover {
   background-color: var(--dark-blue);
+}
+
+/* GRID E CARDS DE RECEITAS */
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+  width: 100%;
+}
+
+.recipe-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #eef2f5;
+}
+
+.recipe-img-wrapper {
+  width: 100%;
+  height: 200px;
+  background-color: #f5f5f5;
+  overflow: hidden;
+}
+
+.recipe-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recipe-content {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.recipe-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+  margin-bottom: 8px;
+}
+
+.recipe-product-tag {
+  display: inline-block;
+  background: #eef6fc;
+  color: var(--primary-blue);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  align-self: flex-start;
+}
+
+.recipe-desc {
+  font-size: 0.88rem;
+  color: #555;
+  line-height: 1.4;
 }
 
 /* SOBRE NÓS E LINKS DE CONTATO */
@@ -790,12 +852,17 @@ body {
   cursor: pointer;
 }
 
+/* ESTILIZAÇÃO DO EMOJI PRETO E BRANCO (IGUAL AO CRUSTÁCEO) */
 .emoji-icon {
+  display: inline-block;
   filter: grayscale(100%) contrast(150%);
+  transition: filter 0.2s;
 }
 
 .filter-btn:hover .emoji-icon,
-.filter-btn.active .emoji-icon {
+.filter-btn.active .emoji-icon,
+.nav-btn:hover .emoji-icon,
+.nav-btn.active .emoji-icon {
   filter: grayscale(100%) brightness(10);
 }
 
@@ -854,12 +921,12 @@ body {
 /* MEDIA QUERIES PARA CELULARES */
 @media (max-width: 768px) {
   .main-header {
-    z-index: 1000; /* Garante que todo o cabeçalho fique acima do conteúdo */
+    z-index: 1000;
   }
 
   .logo-wrapper {
     margin-bottom: -35px;
-    z-index: 10; /* Fica abaixo do menu suspenso */
+    z-index: 10;
   }
 
   .brand-logo {
@@ -871,7 +938,7 @@ body {
   .menu-toggle-btn {
     display: block;
     position: relative;
-    z-index: 1010; /* Garante clique e visibilidade acima de qualquer elemento */
+    z-index: 1010;
   }
 
   .main-nav {
@@ -885,7 +952,7 @@ body {
     gap: 8px;
     display: none;
     box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-    z-index: 1005; /* Faz o menu abrir por cima da logo e do scroll */
+    z-index: 1005;
   }
 
   .main-nav.show {
@@ -908,11 +975,10 @@ body {
   }
 
   .container {
-    /* Espaçamento superior ajustado no mobile para descolar da logo */
     margin-top: 3rem; 
   }
 
-  .products-grid {
+  .products-grid, .recipes-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
   }
@@ -947,32 +1013,6 @@ body {
   left: 10px;
   background-color: #e63946;
   color: #fff;
-  font-size: 0.75rem;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 4px;
-  z-index: 2;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-/* Destaque para cards em Promoção */
-.product-card.on-sale {
-  border: 2px solid #e63946;
-}
-
-/* Botão de filtro de promoção destacado */
-.promo-filter-btn {
-  color: inherit;
-  font-weight: normal;
-}
-
-/* Selo de Porcentagem de Desconto */
-.badge-on-sale {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background-color: #e63946;
-  color: #ffffff;
   font-size: 0.8rem;
   font-weight: 800;
   padding: 4px 8px;
@@ -981,7 +1021,15 @@ body {
   box-shadow: 0 2px 6px rgba(230, 57, 70, 0.4);
 }
 
-/* Preço Normal Riscado */
+.product-card.on-sale {
+  border: 2px solid #e63946;
+}
+
+.promo-filter-btn {
+  color: inherit;
+  font-weight: normal;
+}
+
 .old-price {
   text-decoration: line-through;
   color: #888888;
@@ -989,7 +1037,6 @@ body {
   margin-right: 6px;
 }
 
-/* Preço Promocional em Destaque */
 .product-price.promo {
   color: #e63946;
   font-weight: bold;

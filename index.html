@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pescados Caparaó- Catálogo Digital</title>
+  <title>Pescados Caparaó - Catálogo Digital</title>
   <!-- META TAGS DE PRÉ-VISUALIZAÇÃO (WHATSAPP E REDES SOCIAIS) -->
   <meta property="og:title" content="Pescados Caparaó - Catálogo Digital">
   <meta property="og:description" content="Peixaria e Frutos do Mar - Alegre/ES. Qualidade e frescor direto para a sua mesa!">
@@ -15,7 +15,6 @@
 </head>
 <body>
 
-  <!-- CABEÇALHO -->
   <!-- CABEÇALHO -->
   <header class="main-header">
     <div class="header-container">
@@ -34,6 +33,7 @@
 
       <nav class="main-nav" id="main-nav">
         <button class="nav-btn active" onclick="showSection('catalogo')"><i class="fa-solid fa-store"></i> Catálogo</button>
+        <button class="nav-btn" onclick="showSection('receitas')"><span class="emoji-icon">🍽️</span> Receitas</button>
         <button class="nav-btn" onclick="showSection('sobre')"><i class="fa-solid fa-circle-info"></i> Sobre Nós</button>
       </nav>
 
@@ -53,6 +53,7 @@
       </div>
       <div class="admin-actions">
         <button class="btn-add-product" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> Adicionar Produto</button>
+        <button class="btn-add-product" style="background-color: #8e44ad;" onclick="openRecipeModal()"><i class="fa-solid fa-utensils"></i> Adicionar Receita</button>
         <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
       </div>
     </div>
@@ -64,8 +65,8 @@
           <button class="filter-btn active" onclick="filterCategory('todos')">Todos</button>
           <button class="filter-btn" onclick="filterCategory('promocoes')"><i class="fa-solid fa-tag"></i> Promoções</button>          
           <button class="filter-btn" onclick="filterCategory('peixes')"><i class="fa-solid fa-fish"></i> Peixes</button>          
-          <button class="filter-btn" onclick="filterCategory('crustaceos')"><span class="emoji-icon">🍽️</span> Pratos</button>
-          <button class="filter-btn" onclick="filterCategory('porcoes')"><i <i class="fa-solid fa-bacon"></i></i> Porções</button>
+          <button class="filter-btn" onclick="filterCategory('pratos')"><span class="emoji-icon">🍽️</span> Pratos</button>
+          <button class="filter-btn" onclick="filterCategory('porcoes')"><i class="fa-solid fa-bacon"></i> Porções</button>
           <button class="filter-btn" onclick="filterCategory('camaroes')"><i class="fa-solid fa-shrimp"></i> Camarões</button>
           <button class="filter-btn" onclick="filterCategory('crustaceos')"><span class="emoji-icon">🦀</span> Crustáceos</button>
           <button class="filter-btn" onclick="filterCategory('moluscos')"><i class="fa-solid fa-water"></i> Moluscos</button>
@@ -73,6 +74,14 @@
       </div>
 
       <div class="products-grid" id="products-container"></div>
+    </section>
+
+    <!-- SEÇÃO: RECEITAS -->
+    <section id="sec-receitas" class="content-section">
+      <div class="category-filter-wrapper">
+        <h2 style="color: var(--primary-blue); font-size: 1.5rem; margin-bottom: 1rem;"><span class="emoji-icon">🍽️</span> Receitas e Sugestões de Pratos</h2>
+      </div>
+      <div class="recipes-grid" id="recipes-container"></div>
     </section>
 
     <!-- SEÇÃO: SOBRE NÓS -->
@@ -103,7 +112,7 @@
             <div class="info-box">
               <i class="fa-solid fa-location-dot"></i>
               <h3>Localização</h3>
-              <p><p><a href="https://www.google.com/maps/search/?api=1&query=Pescados+Capara%C3%B3,+Av.+Ol%C3%ADvio+Corr%C3%AAia+Pedrosa,+130+-+Centro,+Alegre+-+ES,+29500-000" target="_blank" rel="noopener noreferrer" class="contact-link">Av. Olívio Corrêia Pedrosa, 130 - Centro, Alegre - ES</a></p>
+              <p><a href="https://www.google.com/maps/search/?api=1&query=Pescados+Capara%C3%B3,+Av.+Ol%C3%ADvio+Corr%C3%AAia+Pedrosa,+130+-+Centro,+Alegre+-+ES,+29500-000" target="_blank" rel="noopener noreferrer" class="contact-link">Av. Olívio Corrêia Pedrosa, 130 - Centro, Alegre - ES</a></p>
             </div>
           </div>
         </div>
@@ -142,7 +151,7 @@
   </div>
   <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
 
-  <!-- MODAL DE LOGIN ADMIN (Autenticação Segura) -->
+  <!-- MODAL DE LOGIN ADMIN -->
   <div class="modal-overlay" id="login-modal">
     <div class="modal-content admin-login-card">
       <div class="modal-header">
@@ -198,7 +207,6 @@
           </div>
         </div>
 
-        <!-- Campo do Preço em Promoção (só preencher se estiver em promoção) -->
         <div class="form-row" id="promo-price-row" style="display: none;">
           <div class="form-group">
             <label>Preço em Promoção (R$):</label>
@@ -229,7 +237,7 @@
         </div>
 
         <div class="form-group">
-          <label>Imagens do Produto (Pode escolher várias ou arrastar):</label>
+          <label>Imagens do Produto:</label>
           <div class="drop-zone" id="drop-zone" onclick="document.getElementById('prod-images-input').click()">
             <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
             <p><strong>Clique para buscar</strong> ou arraste e solte as fotos aqui</p>
@@ -248,7 +256,53 @@
     </div>
   </div>
 
-  <!-- JavaScript Seguro (Módulo JS) -->
+  <!-- MODAL DE CADASTRO DE RECEITAS -->
+  <div class="modal-overlay" id="recipe-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Adicionar Receita / Prato</h2>
+        <button class="close-modal-btn" onclick="closeRecipeModal()">&times;</button>
+      </div>
+      
+      <form id="recipe-form" onsubmit="handleRecipeSubmit(event)">
+        <div class="form-group">
+          <label>Título da Receita / Prato:</label>
+          <input type="text" id="recipe-title" placeholder="Ex: Moqueca Capixaba de Cação" required>
+        </div>
+
+        <div class="form-group">
+          <label>Produto Envolvido (Opcional):</label>
+          <select id="recipe-prod-select">
+            <option value="">-- Selecionar Produto Envolvido --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Foto do Prato Pronto:</label>
+          <div class="drop-zone" id="recipe-drop-zone" onclick="document.getElementById('recipe-images-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+            <p><strong>Clique para buscar</strong> ou arraste a foto do prato</p>
+            <input type="file" id="recipe-images-input" accept="image/*" style="display: none;" onchange="handleRecipeImageFileSelect(event)">
+          </div>
+          <div class="images-preview-container" id="recipe-images-preview"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Ingredientes:</label>
+          <textarea id="recipe-ingredients" placeholder="1kg de peixe&#10;2 tomates picados&#10;Coentro a gosto..." rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Modo de Preparo:</label>
+          <textarea id="recipe-instructions" placeholder="1. Tempere o peixe com sal e limão...&#10;2. Refogue a cebola e o alho..." rows="4" required></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btn-save-recipe">Salvar Receita</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Seguro -->
   <script type="module" src="script.js"></script>
 </body>
 </html>

@@ -10,6 +10,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 import { 
   getAuth, 
+  setPersistence,
+  browserLocalPersistence,
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged 
@@ -29,11 +31,18 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Configurar persistência local para não deslogar ao atualizar a página
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.error("Erro na persistência de login:", error);
+});
+
 let cart = [];
 let allProducts = [];
+let allRecipes = [];
 let currentCategory = "todos";
 let isAdminLoggedIn = false;
 let currentProductImages = [];
+let currentRecipeImages = [];
 
 // Monitorar autenticação
 onAuthStateChanged(auth, (user) => {
@@ -46,24 +55,25 @@ onAuthStateChanged(auth, (user) => {
     if (adminBar) adminBar.style.display = "none";
   }
   renderProducts(allProducts);
+  renderRecipes(allRecipes);
 });
 
 document.addEventListener("DOMContentLoaded", () => {
   checkAdminRouteAccess();
   setupDragAndDrop();
+  setupRecipeDragAndDrop();
   loadProducts();
+  loadRecipes();
 });
 
 function checkAdminRouteAccess() {
   const isAdminHash = window.location.hash === "#admin";
 
-  // Se o usuário acessar a URL com #admin e não estiver logado, abre a modal de login
   if (isAdminHash && !auth.currentUser) {
     document.getElementById("login-modal").classList.add("open");
   }
 }
 
-// Abre o login se o utilizador alterar o hash diretamente na barra de endereço
 window.addEventListener("hashchange", checkAdminRouteAccess);
 
 window.handleAdminLogin = async function(e) {
@@ -104,8 +114,6 @@ function loadProducts() {
       if (!data.images) {
         data.images = data.image ? [data.image] : ["https://via.placeholder.com/300x200?text=Sem+Imagem"];
       }
-      
-      // Armazena o ID REAL do documento Firestore (garantindo que não seja sobrescrito pelo data.id interno)
       allProducts.push({ ...data, id: docSnap.id });
     });
 
@@ -115,7 +123,62 @@ function loadProducts() {
   });
 }
 
-// Função para mostrar/esconder o campo de preço promocional no modal
+// CARREGAR E EXIBIR RECEITAS
+function loadRecipes() {
+  const recipesRef = collection(db, "recipes");
+
+  onSnapshot(recipesRef, (snapshot) => {
+    allRecipes = [];
+    snapshot.forEach((docSnap) => {
+      allRecipes.push({ ...docSnap.data(), id: docSnap.id });
+    });
+    renderRecipes(allRecipes);
+  }, (error) => {
+    console.error("Erro ao carregar receitas:", error);
+  });
+}
+
+function renderRecipes(recipes) {
+  const container = document.getElementById("recipes-container");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (recipes.length === 0) {
+    container.innerHTML = `<p style="text-align:center; width:100%; color:#666; margin-top:20px;">Nenhuma receita cadastrada ainda.</p>`;
+    return;
+  }
+
+  recipes.forEach((recipe) => {
+    const card = document.createElement("div");
+    card.className = "recipe-card";
+
+    const imageUrl = recipe.image || "https://via.placeholder.com/300x200?text=Receita";
+
+    let adminControls = "";
+    if (isAdminLoggedIn) {
+      adminControls = `
+        <div class="admin-card-actions" style="margin-top: 15px;">
+          <button class="btn-delete-prod" onclick="deleteRecipe('${recipe.id}')"><i class="fa-solid fa-trash"></i> Excluir Receita</button>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="recipe-img-wrapper">
+        <img src="${imageUrl}" alt="${recipe.title}">
+      </div>
+      <div class="recipe-content">
+        <h3 class="recipe-title">${recipe.title}</h3>
+        ${recipe.relatedProduct ? `<div class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></div>` : ''}
+        <p class="recipe-desc">${recipe.ingredients ? `<strong>Ingredientes:</strong><br>${recipe.ingredients.replace(/\n/g, '<br>')}` : ''}</p>
+        <p class="recipe-desc" style="margin-top: 8px;">${recipe.instructions ? `<strong>Modo de Preparo:</strong><br>${recipe.instructions.replace(/\n/g, '<br>')}` : ''}</p>
+        ${adminControls}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
 window.togglePromoInput = function() {
   const isChecked = document.getElementById("prod-on-sale").checked;
   const promoRow = document.getElementById("promo-price-row");
@@ -169,7 +232,6 @@ function renderProducts(products) {
       ? `<button class="add-cart-btn btn-disabled" disabled><i class="fa-solid fa-ban"></i> Esgotado</button>`
       : `<button class="add-cart-btn" onclick="addToCart('${product.id}')"><i class="fa-solid fa-plus"></i> Adicionar</button>`;
 
-    // LÓGICA DE PREÇOS E DESCONTO
     let priceHTML = "";
     let saleBadge = "";
 
@@ -263,11 +325,30 @@ function setupDragAndDrop() {
   }, false);
 }
 
+function setupRecipeDragAndDrop() {
+  const dropZone = document.getElementById("recipe-drop-zone");
+  if (!dropZone) return;
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, false);
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    processRecipeImageFiles(e.dataTransfer.files);
+  }, false);
+}
+
 window.handleImageFileSelect = function(e) {
   processImageFiles(e.target.files);
 };
 
-// FUNÇÃO PARA COMPRIMIR A IMAGEM ANTES DE GUARDAR
+window.handleRecipeImageFileSelect = function(e) {
+  processRecipeImageFiles(e.target.files);
+};
+
 function compressImage(file, maxWidth = 800, quality = 0.7) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -291,7 +372,6 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Retorna a imagem otimizada em JPEG
         resolve(canvas.toDataURL("image/jpeg", quality));
       };
     };
@@ -301,11 +381,19 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
 async function processImageFiles(files) {
   for (const file of Array.from(files)) {
     if (!file.type.startsWith('image/')) continue;
-    // Comprime cada imagem selecionada
     const compressedBase64 = await compressImage(file);
     currentProductImages.push(compressedBase64);
   }
   renderImagePreviews();
+}
+
+async function processRecipeImageFiles(files) {
+  for (const file of Array.from(files)) {
+    if (!file.type.startsWith('image/')) continue;
+    const compressedBase64 = await compressImage(file);
+    currentRecipeImages = [compressedBase64];
+  }
+  renderRecipeImagePreviews();
 }
 
 function renderImagePreviews() {
@@ -324,9 +412,30 @@ function renderImagePreviews() {
   });
 }
 
+function renderRecipeImagePreviews() {
+  const previewContainer = document.getElementById("recipe-images-preview");
+  if (!previewContainer) return;
+  previewContainer.innerHTML = "";
+
+  currentRecipeImages.forEach((imgBase64, index) => {
+    const thumb = document.createElement("div");
+    thumb.className = "preview-thumb";
+    thumb.innerHTML = `
+      <img src="${imgBase64}" alt="Preview">
+      <button type="button" class="preview-thumb-remove" onclick="removeRecipeImagePreview(${index})">&times;</button>
+    `;
+    previewContainer.appendChild(thumb);
+  });
+}
+
 window.removeImagePreview = function(index) {
   currentProductImages.splice(index, 1);
   renderImagePreviews();
+};
+
+window.removeRecipeImagePreview = function(index) {
+  currentRecipeImages.splice(index, 1);
+  renderRecipeImagePreviews();
 };
 
 window.openProductModal = function(productId = null) {
@@ -367,6 +476,83 @@ window.openProductModal = function(productId = null) {
 
 window.closeProductModal = function() {
   document.getElementById("admin-modal").classList.remove("open");
+};
+
+// MODAL E AÇÕES DE RECEITA
+window.openRecipeModal = function() {
+  const modal = document.getElementById("recipe-modal");
+  const form = document.getElementById("recipe-form");
+  form.reset();
+  currentRecipeImages = [];
+
+  const selectProd = document.getElementById("recipe-prod-select");
+  if (selectProd) {
+    selectProd.innerHTML = '<option value="">-- Selecionar Produto Envolvido --</option>';
+    allProducts.forEach(p => {
+      selectProd.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+    });
+  }
+
+  renderRecipeImagePreviews();
+  modal.classList.add("open");
+};
+
+window.closeRecipeModal = function() {
+  document.getElementById("recipe-modal").classList.remove("open");
+};
+
+window.handleRecipeSubmit = async function(e) {
+  e.preventDefault();
+
+  if (!auth.currentUser) {
+    alert("Você precisa estar autenticado como administrador para adicionar receitas.");
+    return;
+  }
+
+  const saveBtn = document.getElementById("btn-save-recipe");
+  if (saveBtn) {
+    saveBtn.innerText = "Salvando...";
+    saveBtn.disabled = true;
+  }
+
+  const recipeData = {
+    title: document.getElementById("recipe-title").value.toUpperCase(),
+    relatedProduct: document.getElementById("recipe-prod-select").value,
+    ingredients: document.getElementById("recipe-ingredients").value,
+    instructions: document.getElementById("recipe-instructions").value,
+    image: currentRecipeImages.length > 0 ? currentRecipeImages[0] : ""
+  };
+
+  try {
+    await addDoc(collection(db, "recipes"), recipeData);
+    alert("Receita adicionada com sucesso!");
+    window.closeRecipeModal();
+  } catch (error) {
+    console.error("Erro ao salvar receita:", error);
+    alert(`Erro ao salvar: ${error.message}`);
+  } finally {
+    if (saveBtn) {
+      saveBtn.innerText = "Salvar Receita";
+      saveBtn.disabled = false;
+    }
+  }
+};
+
+window.deleteRecipe = async function(id) {
+  if (!auth.currentUser) {
+    alert("Ação não permitida.");
+    return;
+  }
+
+  if (!confirm("Tem certeza que deseja excluir esta receita?")) return;
+
+  try {
+    await deleteDoc(doc(db, "recipes", id));
+    alert("Receita removida com sucesso!");
+  } catch (error) {
+    console.error("Erro ao excluir receita:", error);
+    alert("Erro ao excluir receita: " + error.message);
+  }
 };
 
 window.handleProductSubmit = async function(e) {
@@ -463,7 +649,6 @@ window.addToCart = function(productId) {
     return;
   }
 
-  // Preço final a ser considerado no carrinho
   const finalPrice = (product.isOnSale && product.promoPrice) ? Number(product.promoPrice) : Number(product.price);
   const cartProduct = { ...product, price: finalPrice };
 
