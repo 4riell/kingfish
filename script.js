@@ -144,17 +144,36 @@ function loadRecipes() {
   });
 }
 
+window.filterRecipeCategory = function(category) {
+  currentRecipeCategory = category;
+  const recipeFilters = document.getElementById("recipe-filters");
+  
+  if (recipeFilters) {
+    recipeFilters.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
+  }
+  
+  if (window.event && window.event.currentTarget) {
+    window.event.currentTarget.classList.add("active");
+  }
+  renderRecipes(allRecipes);
+};
+
 function renderRecipes(recipes) {
   const container = document.getElementById("recipes-container");
   if (!container) return;
   container.innerHTML = "";
 
-  if (recipes.length === 0) {
-    container.innerHTML = `<p style="text-align:center; width:100%; color:#666; margin-top:20px;">Nenhuma receita cadastrada ainda.</p>`;
+  // Aplica o filtro de categorias
+  let listToRender = currentRecipeCategory === "todos" 
+    ? [...recipes] 
+    : recipes.filter(r => r.category === currentRecipeCategory);
+
+  if (listToRender.length === 0) {
+    container.innerHTML = `<p style="text-align:center; width:100%; color:#666; margin-top:20px;">Nenhuma receita encontrada para esta categoria.</p>`;
     return;
   }
 
-  recipes.forEach((recipe) => {
+  listToRender.forEach((recipe) => {
     const card = document.createElement("div");
     card.className = "recipe-card";
     card.onclick = (e) => {
@@ -162,15 +181,7 @@ function renderRecipes(recipes) {
       openRecipeDetailModal(recipe.id);
     };
 
-    let imagesList = [];
-    if (Array.isArray(recipe.images) && recipe.images.length > 0) {
-      imagesList = recipe.images;
-    } else if (recipe.image) {
-      imagesList = [recipe.image];
-    } else {
-      imagesList = ["https://via.placeholder.com/300x200?text=Receita"];
-    }
-
+    let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : ["https://via.placeholder.com/300x200?text=Receita"]);
     const hasMultipleImages = imagesList.length > 1;
     const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${recipe.title}" class="carousel-img">`).join('');
     
@@ -183,19 +194,20 @@ function renderRecipes(recipes) {
       <button type="button" class="carousel-btn next" onclick="event.stopPropagation(); moveCarousel('recipe-${recipe.id}', 1)"><i class="fa-solid fa-chevron-right"></i></button>
     ` : '';
 
-    let adminControls = "";
-    if (isAdminLoggedIn) {
-      adminControls = `
-        <div class="admin-card-actions" style="margin-top: 15px; display: flex; gap: 8px;">
-          <button class="btn-edit-prod" onclick="event.stopPropagation(); editRecipe('${recipe.id}')">
-            <i class="fa-solid fa-pen"></i> Editar
-          </button>
-          <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteRecipe('${recipe.id}')">
-            <i class="fa-solid fa-trash"></i> Excluir
-          </button>
-        </div>
-      `;
-    }
+    let adminControls = isAdminLoggedIn ? `
+      <div class="admin-card-actions" style="margin-top: 15px; display: flex; gap: 8px;">
+        <button class="btn-edit-prod" onclick="event.stopPropagation(); editRecipe('${recipe.id}')">
+          <i class="fa-solid fa-pen"></i> Editar
+        </button>
+        <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteRecipe('${recipe.id}')">
+          <i class="fa-solid fa-trash"></i> Excluir
+        </button>
+      </div>
+    ` : "";
+
+    // Adiciona badge da Categoria e do Produto Relacionado no Card
+    const categoryBadge = recipe.category ? `<span class="recipe-product-tag" style="background:#f1c40f; color:#333;"><i class="fa-solid fa-tag"></i> ${recipe.category.toUpperCase()}</span>` : '';
+    const productBadge = recipe.relatedProduct ? `<span class="recipe-product-tag"><i class="fa-solid fa-fish"></i> ${recipe.relatedProduct}</span>` : '';
 
     card.innerHTML = `
       <div class="carousel-container" id="carousel-recipe-${recipe.id}" data-index="0" data-total="${imagesList.length}">
@@ -207,7 +219,10 @@ function renderRecipes(recipes) {
       </div>
       <div class="recipe-content">
         <h3 class="recipe-title">${recipe.title}</h3>
-        ${recipe.relatedProduct ? `<div class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></div>` : ''}
+        <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px;">
+          ${categoryBadge}
+          ${productBadge}
+        </div>
         <p class="recipe-desc">${recipe.ingredients ? `<strong>Ingredientes:</strong><br>${recipe.ingredients.replace(/\n/g, '<br>')}` : ''}</p>
         <p class="recipe-desc" style="margin-top: 8px;">${recipe.instructions ? `<strong>Modo de Preparo:</strong><br>${recipe.instructions.replace(/\n/g, '<br>')}` : ''}</p>
         ${adminControls}
@@ -225,16 +240,27 @@ window.togglePromoInput = function() {
   }
 };
 
+let currentRecipeCategory = "todos";
+
 function renderProducts(products) {
   const container = document.getElementById("products-container");
   if (!container) return;
   container.innerHTML = "";
 
-  const listToRender = currentCategory === "todos" 
-    ? products 
+  let listToRender = currentCategory === "todos" 
+    ? [...products] 
     : currentCategory === "promocoes"
       ? products.filter(p => p.isOnSale)
       : products.filter(p => p.category === currentCategory);
+
+  // Lógica de ordenação: Promoções no topo, Esgotados no final
+  listToRender.sort((a, b) => {
+    if (a.isOutOfStock && !b.isOutOfStock) return 1;
+    if (!a.isOutOfStock && b.isOutOfStock) return -1;
+    if (a.isOnSale && !b.isOnSale) return -1;
+    if (!a.isOnSale && b.isOnSale) return 1;
+    return 0;
+  });
 
   listToRender.forEach((product) => {
     const card = document.createElement("div");
@@ -547,32 +573,44 @@ window.closeProductModal = function() {
   if (modal) modal.classList.remove("open");
 };
 
-// Abrir modal para NOVA receita
+// Preenche o select dinamicamente
+function populateRecipeProductSelect() {
+  const select = document.getElementById("recipe-prod-select");
+  if (!select) return;
+  select.innerHTML = '<option value="">Nenhum produto associado</option>';
+  allProducts.forEach(prod => {
+    select.innerHTML += `<option value="${prod.name}" data-category="${prod.category}">${prod.name}</option>`;
+  });
+}
+
 window.openRecipeModal = function() {
   document.getElementById("recipe-id-input").value = "";
   document.getElementById("recipe-modal-title").innerText = "Adicionar Receita";
   document.getElementById("recipe-form").reset();
+  document.getElementById("recipe-category").value = "peixes"; // Valor padrão
   currentRecipeImages = [];
   renderRecipeImagePreviews();
+  populateRecipeProductSelect(); 
   
   const modal = document.getElementById("recipe-modal");
   if (modal) modal.classList.add("open");
 };
 
-// Abrir modal para EDITAR receita existente
 window.editRecipe = function(recipeId) {
   const recipe = allRecipes.find(r => r.id === recipeId);
   if (!recipe) return;
+  
+  populateRecipeProductSelect();
 
-  // Preenche os campos do formulário
   document.getElementById("recipe-id-input").value = recipe.id;
   document.getElementById("recipe-modal-title").innerText = "Editar Receita";
   document.getElementById("recipe-title").value = recipe.title || "";
+  document.getElementById("recipe-category").value = recipe.category || "outros"; // Puxa a categoria salva
   document.getElementById("recipe-prod-select").value = recipe.relatedProduct || "";
+  // Se existir campo de descrição simples, adicione: document.getElementById("recipe-desc-input").value = recipe.description || "";
   document.getElementById("recipe-ingredients").value = recipe.ingredients || "";
   document.getElementById("recipe-instructions").value = recipe.instructions || "";
 
-  // Carrega as imagens existentes
   if (Array.isArray(recipe.images) && recipe.images.length > 0) {
     currentRecipeImages = [...recipe.images];
   } else if (recipe.image) {
@@ -582,35 +620,26 @@ window.editRecipe = function(recipeId) {
   }
   
   renderRecipeImagePreviews();
-
-  // Fecha o modal de detalhes (se estiver aberto) e abre o modal de edição
   closeRecipeDetailModal();
   const modal = document.getElementById("recipe-modal");
   if (modal) modal.classList.add("open");
 };
 
-window.closeRecipeModal = function() {
-  const modal = document.getElementById("recipe-modal");
-  if (modal) modal.classList.remove("open");
-};
-
 window.handleRecipeSubmit = async function(e) {
   e.preventDefault();
-
   if (!auth.currentUser) {
     alert("Você precisa estar autenticado como administrador para salvar receitas.");
     return;
   }
 
   const saveBtn = document.getElementById("btn-save-recipe");
-  if (saveBtn) {
-    saveBtn.innerText = "Salvando...";
-    saveBtn.disabled = true;
-  }
+  if (saveBtn) { saveBtn.innerText = "Salvando..."; saveBtn.disabled = true; }
 
   const recipeId = document.getElementById("recipe-id-input").value;
+  
   const recipeData = {
     title: document.getElementById("recipe-title").value.toUpperCase(),
+    category: document.getElementById("recipe-category").value, // Pega do novo select explicitamente
     relatedProduct: document.getElementById("recipe-prod-select").value,
     ingredients: document.getElementById("recipe-ingredients").value,
     instructions: document.getElementById("recipe-instructions").value,
@@ -619,12 +648,9 @@ window.handleRecipeSubmit = async function(e) {
 
   try {
     if (recipeId) {
-      // Atualiza receita existente
-      const recipeRef = doc(db, "recipes", recipeId);
-      await updateDoc(recipeRef, recipeData);
+      await updateDoc(doc(db, "recipes", recipeId), recipeData);
       alert("Receita atualizada com sucesso!");
     } else {
-      // Cria nova receita
       await addDoc(collection(db, "recipes"), recipeData);
       alert("Receita criada com sucesso!");
     }
@@ -633,11 +659,13 @@ window.handleRecipeSubmit = async function(e) {
     console.error("Erro ao salvar receita:", error);
     alert(`Erro ao salvar: ${error.message}`);
   } finally {
-    if (saveBtn) {
-      saveBtn.innerText = "Salvar Receita";
-      saveBtn.disabled = false;
-    }
-  }
+    if (saveBtn) { saveBtn.innerText = "Salvar Receita"; saveBtn.disabled = false; }
+  }  
+};
+
+window.closeRecipeModal = function() {
+  const modal = document.getElementById("recipe-modal");
+  if (modal) modal.classList.remove("open");
 };
 
 window.deleteRecipe = async function(id) {
@@ -1062,30 +1090,31 @@ window.openRecipeDetailModal = function(recipeId) {
   const modal = document.getElementById("recipe-detail-modal");
   document.getElementById("modal-recipe-title").innerText = recipe.title;
 
-  const mediaContainer = document.getElementById("modal-recipe-media");
-  
-  let imagesList = [];
-  if (Array.isArray(recipe.images) && recipe.images.length > 0) {
-    imagesList = recipe.images;
-  } else if (recipe.image) {
-    imagesList = [recipe.image];
-  } else {
-    imagesList = ["https://via.placeholder.com/300x200?text=Receita"];
-  }
+  const tagContainer = document.getElementById("modal-recipe-tag");
+  let tagsHTML = "";
+  if (recipe.category) tagsHTML += `<span class="recipe-product-tag" style="background:#f1c40f; color:#333; margin-right:5px;"><i class="fa-solid fa-tag"></i> ${recipe.category.toUpperCase()}</span>`;
+  if (recipe.relatedProduct) tagsHTML += `<span class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></span>`;
+  tagContainer.innerHTML = tagsHTML;
 
+  document.getElementById("modal-recipe-ingredients").innerText = recipe.ingredients || "Sem ingredientes cadastrados.";
+  document.getElementById("modal-recipe-instructions").innerText = recipe.instructions || "Sem modo de preparo cadastrado.";
+
+  const mediaContainer = document.getElementById("modal-recipe-media");
+  let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : ["https://via.placeholder.com/300x200?text=Receita"]);
+  
   const hasMultiple = imagesList.length > 1;
   const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${recipe.title}" class="carousel-img">`).join('');
   const dotsHTML = hasMultiple 
-    ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setModalCarouselSlide(${i})"></span>`).join('')}</div>`
+    ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setModalCarouselSlideRecipe(${i})"></span>`).join('')}</div>`
     : '';
   const navButtons = hasMultiple ? `
-    <button type="button" class="carousel-btn prev" onclick="moveModalCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-    <button type="button" class="carousel-btn next" onclick="moveModalCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>
+    <button type="button" class="carousel-btn prev" onclick="moveModalCarouselRecipe(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+    <button type="button" class="carousel-btn next" onclick="moveModalCarouselRecipe(1)"><i class="fa-solid fa-chevron-right"></i></button>
   ` : '';
 
   mediaContainer.innerHTML = `
-    <div class="carousel-container" id="modal-carousel" data-index="0" data-total="${imagesList.length}">
-      <div class="carousel-slide" id="modal-carousel-slide">
+    <div class="carousel-container" id="modal-recipe-carousel" data-index="0" data-total="${imagesList.length}">
+      <div class="carousel-slide" id="modal-recipe-carousel-slide">
         ${slidesHTML}
       </div>
       ${navButtons}
@@ -1093,28 +1122,31 @@ window.openRecipeDetailModal = function(recipeId) {
     </div>
   `;
 
-  const tagEl = document.getElementById("modal-recipe-tag");
-  
-  let adminModalActions = "";
-  if (isAdminLoggedIn) {
-    adminModalActions = `
-      <div style="margin-top: 15px;">
-        <button class="btn-edit-prod" onclick="editRecipe('${recipe.id}')">
-          <i class="fa-solid fa-pen"></i> Editar Receita
-        </button>
-      </div>
-    `;
-  }
-
-  tagEl.innerHTML = `
-    ${recipe.relatedProduct ? `<div class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></div>` : ''}
-    ${adminModalActions}
-  `;
-
-  document.getElementById("modal-recipe-ingredients").innerHTML = recipe.ingredients ? recipe.ingredients.replace(/\n/g, '<br>') : 'Nenhum ingrediente informado.';
-  document.getElementById("modal-recipe-instructions").innerHTML = recipe.instructions ? recipe.instructions.replace(/\n/g, '<br>') : 'Nenhum modo de preparo informado.';
-
   if (modal) modal.classList.add("open");
+};
+
+window.closeRecipeDetailModal = function() {
+  const modal = document.getElementById("recipe-detail-modal");
+  if (modal) modal.classList.remove("open");
+};
+
+window.moveModalCarouselRecipe = function(direction) {
+  const carousel = document.getElementById("modal-recipe-carousel");
+  if (!carousel) return;
+  const total = parseInt(carousel.getAttribute("data-total")) || 1;
+  let currentIndex = parseInt(carousel.getAttribute("data-index")) || 0;
+  currentIndex = (currentIndex + direction + total) % total;
+  window.setModalCarouselSlideRecipe(currentIndex);
+};
+
+window.setModalCarouselSlideRecipe = function(index) {
+  const carousel = document.getElementById("modal-recipe-carousel");
+  const slide = document.getElementById("modal-recipe-carousel-slide");
+  if (!carousel || !slide) return;
+  carousel.setAttribute("data-index", index);
+  slide.style.transform = `translateX(-${index * 100}%)`;
+  const dots = carousel.querySelectorAll(".carousel-dot");
+  dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
 };
 
 window.closeRecipeDetailModal = function() {
@@ -1140,14 +1172,19 @@ window.toggleMobileMenu = function(event) {
 
 // Evento global para fechar o menu hambúrguer ao clicar fora dele
 window.addEventListener("click", (event) => {
+  // Fechar menu mobile
   const nav = document.getElementById("main-nav");
   const toggleBtn = document.getElementById("menu-toggle-btn");
 
   if (nav && nav.classList.contains("show")) {
-    // Se o clique não foi dentro da navegação nem no botão hambúrguer, fecha o menu
     if (!nav.contains(event.target) && (!toggleBtn || !toggleBtn.contains(event.target))) {
       nav.classList.remove("show");
     }
+  }
+
+  // Fechar modais ao clicar no overlay escuro
+  if (event.target.classList.contains("modal-overlay")) {
+    event.target.classList.remove("open");
   }
 });
 

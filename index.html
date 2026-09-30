@@ -79,11 +79,17 @@
 
       <div class="products-grid" id="products-container"></div>
     </section>
-
-    <!-- SEÇÃO: RECEITAS -->
+    [
     <section id="sec-receitas" class="content-section">
       <div class="category-filter-wrapper">
         <h2 style="color: var(--primary-blue); font-size: 1.5rem; margin-bottom: 1rem;">Receitas e Sugestões de Pratos</h2>
+        <div class="category-filter" id="recipe-filters">
+          <button class="filter-btn active" onclick="filterRecipeCategory('todos')">Todas</button>
+          <button class="filter-btn" onclick="filterRecipeCategory('peixes')"><i class="fa-solid fa-fish"></i> Peixes</button>          
+          <button class="filter-btn" onclick="filterRecipeCategory('camaroes')"><i class="fa-solid fa-shrimp"></i> Camarões</button>
+          <button class="filter-btn" onclick="filterRecipeCategory('crustaceos')"><span class="emoji-icon">🦀</span> Crustáceos</button>
+          <button class="filter-btn" onclick="filterRecipeCategory('moluscos')"><i class="fa-solid fa-water"></i> Moluscos</button>
+        </div>
       </div>
       <div class="recipes-grid" id="recipes-container"></div>
     </section>
@@ -362,6 +368,18 @@
           <input type="text" id="recipe-title" required placeholder="Ex: Bacalhau à Brás">
         </div>
 
+        <!-- NOVO CAMPO DE CATEGORIA DA RECEITA -->
+        <div class="form-group">
+          <label for="recipe-category">Categoria da Receita:</label>
+          <select id="recipe-category" required>
+            <option value="peixes">Peixes</option>
+            <option value="camaroes">Camarões</option>
+            <option value="crustaceos">Crustáceos</option>
+            <option value="moluscos">Moluscos</option>
+            <option value="outros">Outros / Diversos</option>
+          </select>
+        </div>
+
         <div class="form-group">
           <label for="recipe-prod-select">Produto Relacionado (Opcional):</label>
           <select id="recipe-prod-select">
@@ -541,7 +559,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- JavaScript Seguro -->
   <script type="module" src="script.js"></script>
 </body>
