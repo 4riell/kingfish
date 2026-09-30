@@ -291,11 +291,12 @@ function renderProducts(products) {
   });
 }
 
+// LÓGICA DO CARROSSEL NOS CARDS
 window.moveCarousel = function(productId, direction) {
   const carousel = document.getElementById(`carousel-${productId}`);
   if (!carousel) return;
-  const total = parseInt(carousel.getAttribute("data-total"));
-  let currentIndex = parseInt(carousel.getAttribute("data-index"));
+  const total = parseInt(carousel.getAttribute("data-total")) || 1;
+  let currentIndex = parseInt(carousel.getAttribute("data-index")) || 0;
 
   currentIndex = (currentIndex + direction + total) % total;
   window.setCarouselSlide(productId, currentIndex);
@@ -794,7 +795,26 @@ window.openProductDetailModal = function(productId) {
 
   const mediaContainer = document.getElementById("modal-product-media");
   const imagesList = (prod.images && prod.images.length > 0) ? prod.images : [prod.image || "https://via.placeholder.com/300x200?text=Sem+Imagem"];
-  mediaContainer.innerHTML = `<img src="${imagesList[0]}" alt="${prod.name}" style="width:100%; border-radius:8px; object-fit:cover; max-height:250px;">`;
+  
+  const hasMultiple = imagesList.length > 1;
+  const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${prod.name}" class="carousel-img">`).join('');
+  const dotsHTML = hasMultiple 
+    ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setModalCarouselSlide(${i})"></span>`).join('')}</div>`
+    : '';
+  const navButtons = hasMultiple ? `
+    <button class="carousel-btn prev" onclick="moveModalCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="carousel-btn next" onclick="moveModalCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>
+  ` : '';
+
+  mediaContainer.innerHTML = `
+    <div class="carousel-container" id="modal-carousel" data-index="0" data-total="${imagesList.length}">
+      <div class="carousel-slide" id="modal-carousel-slide">
+        ${slidesHTML}
+      </div>
+      ${navButtons}
+      ${dotsHTML}
+    </div>
+  `;
 
   const priceContainer = document.getElementById("modal-product-price");
   if (prod.isOnSale && prod.promoPrice && Number(prod.promoPrice) < Number(prod.price)) {
@@ -824,6 +844,31 @@ window.openProductDetailModal = function(productId) {
   }
 
   if (modal) modal.classList.add("open");
+};
+
+// CONTROLES DO CARROSSEL DENTRO DO MODAL
+window.moveModalCarousel = function(direction) {
+  const carousel = document.getElementById("modal-carousel");
+  if (!carousel) return;
+  const total = parseInt(carousel.getAttribute("data-total")) || 1;
+  let currentIndex = parseInt(carousel.getAttribute("data-index")) || 0;
+
+  currentIndex = (currentIndex + direction + total) % total;
+  window.setModalCarouselSlide(currentIndex);
+};
+
+window.setModalCarouselSlide = function(index) {
+  const carousel = document.getElementById("modal-carousel");
+  const slide = document.getElementById("modal-carousel-slide");
+  if (!carousel || !slide) return;
+
+  carousel.setAttribute("data-index", index);
+  slide.style.transform = `translateX(-${index * 100}%)`;
+
+  const dots = carousel.querySelectorAll(".carousel-dot");
+  dots.forEach((dot, i) => {
+    dot.classList.toggle("active", i === index);
+  });
 };
 
 window.closeProductDetailModal = function() {
