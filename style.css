@@ -1058,7 +1058,7 @@ body {
   color: #555;
   line-height: 1.4;
   display: -webkit-box;
-  line-clamp: 3; /* Exibe no máximo 3 linhas */
+  line-clamp: 3; /* Exibe no máximo 3 linhasss */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
