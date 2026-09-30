@@ -1369,3 +1369,12 @@ body {
   color: #e53e3e;
   font-weight: 700;
 }
+
+.address-link {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
