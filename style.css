@@ -1048,3 +1048,46 @@ body {
   gap: 4px;
   margin-bottom: 8px;
 }
+
+/* LIMITAÇÃO DE ALTURA DOS CARDS PARA EVITAR CRIAÇÃO INFINITA */
+.product-card, .recipe-card {
+  cursor: pointer;
+}
+
+.recipe-desc {
+  font-size: 0.88rem;
+  color: #555;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Exibe no máximo 3 linhas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* MODAL DE DETALHES */
+.modal-detail {
+  max-width: 600px;
+}
+
+.modal-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-desc {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+/* Impedir que cliques em botões dentro do card acionem a abertura do modal */
+.admin-card-actions, 
+.add-cart-btn, 
+.carousel-btn, 
+.carousel-dots {
+  position: relative;
+  z-index: 10;
+}

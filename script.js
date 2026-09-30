@@ -31,7 +31,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Configurar persistência local para não deslogar ao atualizar a página
+// Configurar persistência local para manter login ao atualizar
 setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error("Erro na persistência de login:", error);
 });
@@ -44,7 +44,7 @@ let isAdminLoggedIn = false;
 let currentProductImages = [];
 let currentRecipeImages = [];
 
-// Monitorar autenticação
+// Monitorar estado da autenticação
 onAuthStateChanged(auth, (user) => {
   const adminBar = document.getElementById("admin-bar");
   if (user) {
@@ -70,7 +70,8 @@ function checkAdminRouteAccess() {
   const isAdminHash = window.location.hash === "#admin";
 
   if (isAdminHash && !auth.currentUser) {
-    document.getElementById("login-modal").classList.add("open");
+    const loginModal = document.getElementById("login-modal");
+    if (loginModal) loginModal.classList.add("open");
   }
 }
 
@@ -83,7 +84,8 @@ window.handleAdminLogin = async function(e) {
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
-    document.getElementById("login-modal").classList.remove("open");
+    const loginModal = document.getElementById("login-modal");
+    if (loginModal) loginModal.classList.remove("open");
     alert("Login realizado com sucesso!");
   } catch (error) {
     console.error("Erro no login:", error);
@@ -101,7 +103,8 @@ window.adminLogout = async function() {
 };
 
 window.closeLoginModal = function() {
-  document.getElementById("login-modal").classList.remove("open");
+  const loginModal = document.getElementById("login-modal");
+  if (loginModal) loginModal.classList.remove("open");
 };
 
 function loadProducts() {
@@ -123,7 +126,6 @@ function loadProducts() {
   });
 }
 
-// CARREGAR E EXIBIR RECEITAS
 function loadRecipes() {
   const recipesRef = collection(db, "recipes");
 
@@ -151,6 +153,10 @@ function renderRecipes(recipes) {
   recipes.forEach((recipe) => {
     const card = document.createElement("div");
     card.className = "recipe-card";
+    card.onclick = (e) => {
+      if (e.target.closest('.admin-card-actions')) return;
+      openRecipeDetailModal(recipe.id);
+    };
 
     const imageUrl = recipe.image || "https://via.placeholder.com/300x200?text=Receita";
 
@@ -180,7 +186,7 @@ function renderRecipes(recipes) {
 }
 
 window.togglePromoInput = function() {
-  const isChecked = document.getElementById("prod-on-sale").checked;
+  const isChecked = document.getElementById("prod-on-sale")?.checked;
   const promoRow = document.getElementById("promo-price-row");
   if (promoRow) {
     promoRow.style.display = isChecked ? "flex" : "none";
@@ -201,7 +207,13 @@ function renderProducts(products) {
   listToRender.forEach((product) => {
     const card = document.createElement("div");
     card.className = `product-card ${product.isOutOfStock ? 'out-of-stock' : ''} ${product.isOnSale ? 'on-sale' : ''}`;
-    
+    card.onclick = (e) => {
+      if (e.target.closest('.admin-card-actions') || e.target.closest('.add-cart-btn') || e.target.closest('.carousel-btn') || e.target.closest('.carousel-dots')) {
+        return;
+      }
+      openProductDetailModal(product.id);
+    };
+
     const imagesList = (product.images && product.images.length > 0) 
       ? product.images 
       : [product.image || "https://via.placeholder.com/300x200?text=Sem+Imagem"];
@@ -210,27 +222,27 @@ function renderProducts(products) {
     const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${product.name}" class="carousel-img">`).join('');
     
     const dotsHTML = hasMultipleImages 
-      ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setCarouselSlide('${product.id}',${i})"></span>`).join('')}</div>`
+      ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="event.stopPropagation(); setCarouselSlide('${product.id}',${i})"></span>`).join('')}</div>`
       : '';
 
     const navButtons = hasMultipleImages ? `
-      <button class="carousel-btn prev" onclick="moveCarousel('${product.id}', -1)"><i class="fa-solid fa-chevron-left"></i></button>
-      <button class="carousel-btn next" onclick="moveCarousel('${product.id}', 1)"><i class="fa-solid fa-chevron-right"></i></button>
+      <button class="carousel-btn prev" onclick="event.stopPropagation(); moveCarousel('${product.id}', -1)"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="carousel-btn next" onclick="event.stopPropagation(); moveCarousel('${product.id}', 1)"><i class="fa-solid fa-chevron-right"></i></button>
     ` : '';
 
     let adminControls = "";
     if (isAdminLoggedIn) {
       adminControls = `
         <div class="admin-card-actions">
-          <button class="btn-edit-prod" onclick="openProductModal('${product.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
-          <button class="btn-delete-prod" onclick="deleteProduct('${product.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>
+          <button class="btn-edit-prod" onclick="event.stopPropagation(); openProductModal('${product.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
+          <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteProduct('${product.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>
         </div>
       `;
     }
 
     const buyButton = product.isOutOfStock
       ? `<button class="add-cart-btn btn-disabled" disabled><i class="fa-solid fa-ban"></i> Esgotado</button>`
-      : `<button class="add-cart-btn" onclick="addToCart('${product.id}')"><i class="fa-solid fa-plus"></i> Adicionar</button>`;
+      : `<button class="add-cart-btn" onclick="event.stopPropagation(); addToCart('${product.id}')"><i class="fa-solid fa-plus"></i> Adicionar</button>`;
 
     let priceHTML = "";
     let saleBadge = "";
@@ -281,6 +293,7 @@ function renderProducts(products) {
 
 window.moveCarousel = function(productId, direction) {
   const carousel = document.getElementById(`carousel-${productId}`);
+  if (!carousel) return;
   const total = parseInt(carousel.getAttribute("data-total"));
   let currentIndex = parseInt(carousel.getAttribute("data-index"));
 
@@ -291,6 +304,7 @@ window.moveCarousel = function(productId, direction) {
 window.setCarouselSlide = function(productId, index) {
   const carousel = document.getElementById(`carousel-${productId}`);
   const slide = document.getElementById(`slide-${productId}`);
+  if (!carousel || !slide) return;
   
   carousel.setAttribute("data-index", index);
   slide.style.transform = `translateX(-${index * 100}%)`;
@@ -469,20 +483,20 @@ window.openProductModal = function(productId = null) {
     currentProductImages = [];
   }
 
-  togglePromoInput();
+  window.togglePromoInput();
   renderImagePreviews();
   modal.classList.add("open");
 };
 
 window.closeProductModal = function() {
-  document.getElementById("admin-modal").classList.remove("open");
+  const modal = document.getElementById("admin-modal");
+  if (modal) modal.classList.remove("open");
 };
 
-// MODAL E AÇÕES DE RECEITA
 window.openRecipeModal = function() {
   const modal = document.getElementById("recipe-modal");
   const form = document.getElementById("recipe-form");
-  form.reset();
+  if (form) form.reset();
   currentRecipeImages = [];
 
   const selectProd = document.getElementById("recipe-prod-select");
@@ -494,11 +508,12 @@ window.openRecipeModal = function() {
   }
 
   renderRecipeImagePreviews();
-  modal.classList.add("open");
+  if (modal) modal.classList.add("open");
 };
 
 window.closeRecipeModal = function() {
-  document.getElementById("recipe-modal").classList.remove("open");
+  const modal = document.getElementById("recipe-modal");
+  if (modal) modal.classList.remove("open");
 };
 
 window.handleRecipeSubmit = async function(e) {
@@ -635,8 +650,9 @@ window.deleteProduct = async function(id) {
 window.filterCategory = function(category) {
   currentCategory = category;
   document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
-  if (event && event.currentTarget) {
-    event.currentTarget.classList.add("active");
+  
+  if (window.event && window.event.currentTarget) {
+    window.event.currentTarget.classList.add("active");
   }
   renderProducts(allProducts);
 };
@@ -669,6 +685,7 @@ function updateCartUI() {
   const cartCount = document.getElementById("cart-count");
   const cartTotal = document.getElementById("cart-total-price");
 
+  if (!cartItemsContainer) return;
   cartItemsContainer.innerHTML = "";
   let total = 0;
   let itemCount = 0;
@@ -694,8 +711,8 @@ function updateCartUI() {
     cartItemsContainer.appendChild(div);
   });
 
-  cartCount.innerText = itemCount;
-  cartTotal.innerText = `R$ ${total.toFixed(2)}`;
+  if (cartCount) cartCount.innerText = itemCount;
+  if (cartTotal) cartTotal.innerText = `R$ ${total.toFixed(2)}`;
 }
 
 window.updateQuantity = function(index, value) {
@@ -711,6 +728,7 @@ window.removeFromCart = function(index) {
 window.toggleCart = function(forceOpen = false) {
   const sidebar = document.getElementById("cart-sidebar");
   const overlay = document.getElementById("cart-overlay");
+  if (!sidebar || !overlay) return;
   
   if (forceOpen || !sidebar.classList.contains("open")) {
     sidebar.classList.add("open");
@@ -755,10 +773,85 @@ window.showSection = function(sectionId) {
   document.querySelectorAll(".content-section").forEach(sec => sec.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
 
-  document.getElementById(`sec-${sectionId}`).classList.add("active");
-  if (event && event.currentTarget) {
-    event.currentTarget.classList.add("active");
+  const targetSec = document.getElementById(`sec-${sectionId}`);
+  if (targetSec) targetSec.classList.add("active");
+
+  if (window.event && window.event.currentTarget) {
+    window.event.currentTarget.classList.add("active");
   }
   const nav = document.getElementById("main-nav");
   if (nav) nav.classList.remove("show");
+};
+
+// MODAIS DE DETALHES (PRODUTOS E RECEITAS)
+window.openProductDetailModal = function(productId) {
+  const prod = allProducts.find(p => p.id === productId);
+  if (!prod) return;
+
+  const modal = document.getElementById("product-detail-modal");
+  document.getElementById("modal-product-title").innerText = prod.name;
+  document.getElementById("modal-product-desc").innerText = prod.desc || "Sem descrição disponível.";
+
+  const mediaContainer = document.getElementById("modal-product-media");
+  const imagesList = (prod.images && prod.images.length > 0) ? prod.images : [prod.image || "https://via.placeholder.com/300x200?text=Sem+Imagem"];
+  mediaContainer.innerHTML = `<img src="${imagesList[0]}" alt="${prod.name}" style="width:100%; border-radius:8px; object-fit:cover; max-height:250px;">`;
+
+  const priceContainer = document.getElementById("modal-product-price");
+  if (prod.isOnSale && prod.promoPrice && Number(prod.promoPrice) < Number(prod.price)) {
+    priceContainer.innerHTML = `
+      <div class="price-container">
+        <span class="old-price">R$ ${Number(prod.price).toFixed(2)}</span>
+        <span class="product-price promo">R$ ${Number(prod.promoPrice).toFixed(2)} <small>/ ${prod.unit}</small></span>
+      </div>
+    `;
+  } else {
+    priceContainer.innerHTML = `<div class="product-price">R$ ${Number(prod.price).toFixed(2)} <small>/ ${prod.unit}</small></div>`;
+  }
+
+  const buyBtn = document.getElementById("modal-product-buy-btn");
+  if (prod.isOutOfStock) {
+    buyBtn.className = "add-cart-btn btn-disabled";
+    buyBtn.disabled = true;
+    buyBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Esgotado`;
+  } else {
+    buyBtn.className = "add-cart-btn";
+    buyBtn.disabled = false;
+    buyBtn.innerHTML = `<i class="fa-solid fa-cart-shopping"></i> Adicionar ao Carrinho`;
+    buyBtn.onclick = () => {
+      addToCart(prod.id);
+      closeProductDetailModal();
+    };
+  }
+
+  if (modal) modal.classList.add("open");
+};
+
+window.closeProductDetailModal = function() {
+  const modal = document.getElementById("product-detail-modal");
+  if (modal) modal.classList.remove("open");
+};
+
+window.openRecipeDetailModal = function(recipeId) {
+  const recipe = allRecipes.find(r => r.id === recipeId);
+  if (!recipe) return;
+
+  const modal = document.getElementById("recipe-detail-modal");
+  document.getElementById("modal-recipe-title").innerText = recipe.title;
+
+  const imgEl = document.getElementById("modal-recipe-img");
+  imgEl.src = recipe.image || "https://via.placeholder.com/300x200?text=Receita";
+  imgEl.alt = recipe.title;
+
+  const tagEl = document.getElementById("modal-recipe-tag");
+  tagEl.innerHTML = recipe.relatedProduct ? `<div class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></div>` : '';
+
+  document.getElementById("modal-recipe-ingredients").innerHTML = recipe.ingredients ? recipe.ingredients.replace(/\n/g, '<br>') : 'Nenhum ingrediente informado.';
+  document.getElementById("modal-recipe-instructions").innerHTML = recipe.instructions ? recipe.instructions.replace(/\n/g, '<br>') : 'Nenhum modo de preparo informado.';
+
+  if (modal) modal.classList.add("open");
+};
+
+window.closeRecipeDetailModal = function() {
+  const modal = document.getElementById("recipe-detail-modal");
+  if (modal) modal.classList.remove("open");
 };

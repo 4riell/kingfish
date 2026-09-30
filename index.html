@@ -65,7 +65,7 @@
           <button class="filter-btn active" onclick="filterCategory('todos')">Todos</button>
           <button class="filter-btn" onclick="filterCategory('promocoes')"><i class="fa-solid fa-tag"></i> Promoções</button>          
           <button class="filter-btn" onclick="filterCategory('peixes')"><i class="fa-solid fa-fish"></i> Peixes</button>          
-          <button class="filter-btn" onclick="filterCategory('pratos')"><span class="emoji-icon">🍽️</span> Pratos</button>
+          <button class="filter-btn" onclick="filterCategory('pratos')"><i class="fa-solid fa-utensils"></i> Pratos</button>
           <button class="filter-btn" onclick="filterCategory('porcoes')"><i class="fa-solid fa-bacon"></i> Porções</button>
           <button class="filter-btn" onclick="filterCategory('camaroes')"><i class="fa-solid fa-shrimp"></i> Camarões</button>
           <button class="filter-btn" onclick="filterCategory('crustaceos')"><span class="emoji-icon">🦀</span> Crustáceos</button>
@@ -79,7 +79,7 @@
     <!-- SEÇÃO: RECEITAS -->
     <section id="sec-receitas" class="content-section">
       <div class="category-filter-wrapper">
-        <h2 style="color: var(--primary-blue); font-size: 1.5rem; margin-bottom: 1rem;"><span class="emoji-icon">🍽️</span> Receitas e Sugestões de Pratos</h2>
+        <h2 style="color: var(--primary-blue); font-size: 1.5rem; margin-bottom: 1rem;"><i class="fa-solid fa-spoon"></i> Receitas e Sugestões de Pratos</h2>
       </div>
       <div class="recipes-grid" id="recipes-container"></div>
     </section>
@@ -299,6 +299,50 @@
 
         <button type="submit" class="btn-primary" id="btn-save-recipe">Salvar Receita</button>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALHES DO PRODUTO -->
+  <div class="modal-overlay" id="product-detail-modal">
+    <div class="modal-content modal-detail">
+      <div class="modal-header">
+        <h2 id="modal-product-title">Detalhes do Produto</h2>
+        <button class="close-modal-btn" onclick="closeProductDetailModal()">&times;</button>
+      </div>
+      <div class="modal-detail-body">
+        <div class="modal-detail-media" id="modal-product-media"></div>
+        <div class="modal-detail-info">
+          <p id="modal-product-desc" class="modal-desc"></p>
+          <div id="modal-product-price"></div>
+          <button id="modal-product-buy-btn" class="add-cart-btn" style="margin-top: 15px; width: 100%;"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALHES DA RECEITA -->
+  <div class="modal-overlay" id="recipe-detail-modal">
+    <div class="modal-content modal-detail">
+      <div class="modal-header">
+        <h2 id="modal-recipe-title">Detalhes da Receita</h2>
+        <button class="close-modal-btn" onclick="closeRecipeDetailModal()">&times;</button>
+      </div>
+      <div class="modal-detail-body">
+        <div class="modal-detail-media">
+          <img id="modal-recipe-img" src="" alt="" style="width:100%; border-radius:8px; object-fit:cover; max-height:250px;">
+        </div>
+        <div class="modal-detail-info">
+          <div id="modal-recipe-tag"></div>
+          <div style="margin-top: 10px;">
+            <p><strong>Ingredientes:</strong></p>
+            <p id="modal-recipe-ingredients" class="modal-desc"></p>
+          </div>
+          <div style="margin-top: 10px;">
+            <p><strong>Modo de Preparo:</strong></p>
+            <p id="modal-recipe-instructions" class="modal-desc"></p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
