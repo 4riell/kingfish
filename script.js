@@ -698,8 +698,20 @@ window.populateRecipeProductSelect = function(categoryFilter = null) {
 window.handleRecipeVideoFileSelect = function(event) {
   const file = event.target.files[0];
   if (!file || !file.type.startsWith('video/')) return;
+  
+  // O Firestore limita documentos a 1MB (~1.048.576 bytes). 
+  // Avisamos o usuário caso o vídeo ultrapasse 800KB para garantir margem de segurança.
+  if (file.size > 800 * 1024) {
+    alert("O vídeo selecionado é muito grande para ser salvo diretamente no banco de dados (Limite máximo de ~800KB). Por favor, escolha um vídeo mais curto ou compactado.");
+    event.target.value = "";
+    return;
+  }
+
   const reader = new FileReader();
-  reader.onload = (e) => { currentRecipeVideo = e.target.result; renderRecipeVideoPreview(); };
+  reader.onload = (e) => { 
+    currentRecipeVideo = e.target.result; 
+    renderRecipeVideoPreview(); 
+  };
   reader.readAsDataURL(file);
 };
 
