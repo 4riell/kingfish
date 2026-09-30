@@ -1233,3 +1233,138 @@ body {
   padding: 6px 8px;
   font-size: 0.85rem;
 }
+
+/* ==========================================
+   ESTILOS DO MODAL DE INFORMAÇÕES (SOBRE NÓS)
+   ========================================== */
+
+.modal-info-container {
+  max-width: 520px;
+  padding: 1.2rem;
+  background-color: #f8fafc;
+}
+
+.modal-info-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 75vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Cards Individuais */
+.info-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #718096;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  letter-spacing: 0.5px;
+}
+
+.info-card-header i {
+  font-size: 1rem;
+}
+
+.info-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Linhas de Pedido Mínimo e Horários */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #edf2f7;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Linhas de Contato */
+.info-row-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.info-value-link {
+  color: var(--primary-blue);
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+
+.info-value-link:hover {
+  text-decoration: underline;
+}
+
+.info-value-text {
+  font-size: 0.95rem;
+  color: #4a5568;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Badges das Formas de Pagamento */
+.payment-badges-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.payment-badge {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2d3748;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Horários de Funcionamento */
+.schedule-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #4a5568;
+  padding: 4px 0;
+}
+
+.schedule-row.closed {
+  color: #a0aec0;
+}
+
+.text-closed {
+  color: #e53e3e;
+  font-weight: 700;
+}

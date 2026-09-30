@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pescados Caparaó - Catálogo Digital</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" href="pescadoscaparao.jpg">
   <!-- META TAGS DE PRÉ-VISUALIZAÇÃO (WHATSAPP E REDES SOCIAIS) -->
   <meta property="og:title" content="Pescados Caparaó - Catálogo Digital">
   <meta property="og:description" content="Peixaria e Frutos do Mar - Alegre/ES. Qualidade e frescor direto para a sua mesa!">
@@ -34,7 +36,7 @@
       <nav class="main-nav" id="main-nav">
         <button class="nav-btn active" onclick="showSection('catalogo')"><!--<i class="fa-solid fa-store"></i>--> Catálogo</button>
         <button class="nav-btn" onclick="showSection('receitas')"><!--<i class="fa-solid fa-spoon"></i>--> Receitas</button>
-        <button class="nav-btn" onclick="showSection('sobre')"><!--<i class="fa-solid fa-circle-info"></i>--> Sobre Nós</button>
+        <button class="nav-btn" onclick="openAboutModal()"><!--<i class="fa-solid fa-circle-info"></i>--> Sobre Nós</button>
       </nav>
 
       <button class="cart-toggle-btn" onclick="toggleCart()">
@@ -84,40 +86,115 @@
       <div class="recipes-grid" id="recipes-container"></div>
     </section>
 
-    <!-- SEÇÃO: SOBRE NÓS -->
-    <section id="sec-sobre" class="content-section">
-      <div class="about-card">
-        <div class="about-header">
-          <img src="pescadoscaparao.jpg" alt="Pescados Caparao Logo" class="about-logo">
-          <h2>Sobre a Pescados Caparaó</h2>
-          <p class="slogan">Qualidade e frescor direto para a sua mesa!</p>
+    <!-- MODAL DE SOBRE NÓS / INFORMAÇÕES DA LOJA -->
+    <div class="modal-overlay" id="about-modal">
+      <div class="modal-content modal-info-container">
+        <div class="modal-header">
+          <h2>Informações</h2>
+          <button class="close-modal-btn" onclick="closeAboutModal()">&times;</button>
         </div>
-        
-        <div class="about-content">
-          <p>Na <strong>Pescados Caparaó</strong>, temos o compromisso de entregar os melhores peixes e frutos do mar com higiene, procedência garantida e o melhor atendimento da região.</p>
-          
-          <div class="info-boxes">
-            <div class="info-box">
-              <i class="fa-solid fa-phone"></i>
-              <h3>Telefones / WhatsApp</h3>
-              <p><a href="https://wa.me/5528999868639" target="_blank" rel="noopener noreferrer" class="contact-link">(28) 99986-8639</a></p>
-            </div>
 
-            <div class="info-box">
-              <i class="fa-brands fa-instagram"></i>
-              <h3>Instagram</h3>
-              <p><a href="https://www.instagram.com/pescadoscaparao/" target="_blank" rel="noopener noreferrer" class="contact-link">@pescadoscaparao</a></p>
-            </div>
+        <div class="modal-info-body">
 
-            <div class="info-box">
-              <i class="fa-solid fa-location-dot"></i>
-              <h3>Localização</h3>
-              <p><a href="https://www.google.com/maps/search/?api=1&query=Pescados+Capara%C3%B3,+Av.+Ol%C3%ADvio+Corr%C3%AAia+Pedrosa,+130+-+Centro,+Alegre+-+ES,+29500-000" target="_blank" rel="noopener noreferrer" class="contact-link">Av. Olívio Corrêia Pedrosa, 130 - Centro, Alegre - ES</a></p>
+          <!-- CARD 1: ENTREGA E PEDIDO -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <i class="fa-solid fa-truck"></i>
+              <span>ENTREGA E PEDIDO</span>
+            </div>
+            <div class="info-card-content">
+              <div class="info-row">
+                <span>Pedido mínimo</span>
+                <strong>R$ 30,00</strong>
+              </div>
+              <div class="info-row">
+                <span>Tempo médio</span>
+                <strong>40-60 min</strong>
+              </div>
             </div>
           </div>
+
+          <!-- CARD 2: CONTATO E REDES -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <i class="fa-solid fa-location-dot"></i>
+              <span>CONTATO</span>
+            </div>
+            <div class="info-card-content">
+              <div class="info-row-block">
+                <span class="info-label">Telefone / WhatsApp</span>
+                <a href="https://wa.me/5528999868639" target="_blank" rel="noopener noreferrer" class="info-value-link">(28) 99986-8639</a>
+              </div>
+              <div class="info-row-block">
+                <span class="info-label">Instagram</span>
+                <a href="https://www.instagram.com/pescadoscaparao/" target="_blank" rel="noopener noreferrer" class="info-value-link">@pescadoscaparao</a>
+              </div>
+              <div class="info-row-block">
+                <span class="info-label">Endereço</span>
+                <p class="info-value-text">Av. Olívio Corrêia Pedrosa, 130 - Centro, Alegre - ES</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 3: FORMAS DE PAGAMENTO -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <i class="fa-solid fa-wallet"></i>
+              <span>PAGAMENTO NA ENTREGA</span>
+            </div>
+            <div class="payment-badges-grid">
+              <span class="payment-badge"><i class="fa-solid fa-money-bill-wave" style="color: #27ae60;"></i> Dinheiro</span>
+              <span class="payment-badge"><i class="fa-solid fa-qrcode" style="color: #1abc9c;"></i> PIX</span>
+              <span class="payment-badge"><i class="fa-brands fa-cc-visa" style="color: #1a1f71;"></i> Cartão Visa - Crédito</span>
+              <span class="payment-badge"><i class="fa-brands fa-cc-mastercard" style="color: #eb001b;"></i> Cartão Master - Crédito</span>
+              <span class="payment-badge"><i class="fa-brands fa-cc-credit-card" style="color: #006fcf;"></i> Cartão Elo - Crédito</span>
+              <span class="payment-badge"><i class="fa-brands fa-cc-visa" style="color: #1a1f71;"></i> Cartão Visa - Débito</span>
+              <span class="payment-badge"><i class="fa-brands fa-cc-mastercard" style="color: #eb001b;"></i> Cartão Master - Débito</span>
+              <span class="payment-badge"><i class="fa-brands fa-cc-credit-card" style="color: #006fcf;"></i> Cartão Elo - Débito</span>
+            </div>
+          </div>
+
+          <!-- CARD 4: HORÁRIO DE FUNCIONAMENTO -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <i class="fa-regular fa-clock"></i>
+              <span>HORÁRIO DE FUNCIONAMENTO</span>
+            </div>
+            <div class="info-card-content">
+              <div class="schedule-row">
+                <span>Segunda-feira</span>
+                <strong>08:00 às 18:00</strong>
+              </div>
+              <div class="schedule-row">
+                <span>Terça-feira</span>
+                <strong>08:00 às 18:00</strong>
+              </div>
+              <div class="schedule-row">
+                <span>Quarta-feira</span>
+                <strong>08:00 às 18:00</strong>
+              </div>
+              <div class="schedule-row">
+                <span>Quinta-feira</span>
+                <strong>08:00 às 18:00</strong>
+              </div>
+              <div class="schedule-row">
+                <span>Sexta-feira</span>
+                <strong>08:00 às 18:00</strong>
+              </div>
+              <div class="schedule-row">
+                <span>Sábado</span>
+                <strong>08:00 às 13:00</strong>
+              </div>
+              <div class="schedule-row closed">
+                <span>Domingo</span>
+                <strong class="text-closed">Fechado</strong>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-    </section>
+    </div>
 
   </main>
 

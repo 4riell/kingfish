@@ -809,7 +809,7 @@ window.sendOrderToWhatsApp = function() {
     const referencia = document.getElementById("checkout-referencia")?.value.trim();
 
     if (!cep || !cidade || !bairro || !rua || !numero || !referencia) {
-      alert("Por favor, preencha todos os campos obrigatórios de entrega (apenas o Complemento é opcional).");
+      alert("Por favor, preencha todos os campos obrigatórios de entrega.");
       return;
     }
 
@@ -1040,5 +1040,15 @@ window.openRecipeDetailModal = function(recipeId) {
 
 window.closeRecipeDetailModal = function() {
   const modal = document.getElementById("recipe-detail-modal");
+  if (modal) modal.classList.remove("open");
+};
+
+window.openAboutModal = function() {
+  const modal = document.getElementById("about-modal");
+  if (modal) modal.classList.add("open");
+};
+
+window.closeAboutModal = function() {
+  const modal = document.getElementById("about-modal");
   if (modal) modal.classList.remove("open");
 };
