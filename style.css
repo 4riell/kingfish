@@ -961,11 +961,8 @@ body {
 
 /* Botão de filtro de promoção destacado */
 .promo-filter-btn {
-  font-weight: bold;
-}
-
-.promo-filter-btn.active {
-  color: #fff;
+  color: inherit;
+  font-weight: normal;
 }
 
 /* Selo de Porcentagem de Desconto */
@@ -1002,22 +999,4 @@ body {
   align-items: baseline;
   gap: 4px;
   margin-bottom: 8px;
-}
-
-/* Garante a cor vermelha constante do botão de Promoções (Desktop e Mobile) */
-.filter-btn.promo-filter-btn {
-  background-color: #e63946 !important;
-  color: #ffffff !important;
-  border-color: #e63946 !important;
-  font-weight: bold;
-}
-
-/* Mantém o estilo destacado quando estiver selecionado/ativo */
-.filter-btn.promo-filter-btn.active,
-.filter-btn.promo-filter-btn:focus,
-.filter-btn.promo-filter-btn:active {
-  background-color: #c12a36 !important;
-  color: #ffffff !important;
-  border-color: #c12a36 !important;
-  box-shadow: 0 0 8px rgba(230, 57, 70, 0.5);
 }
