@@ -712,26 +712,6 @@ window.handleRecipeVideoFileSelect = function(event) {
   reader.readAsDataURL(file);
 };
 
-function renderRecipeVideoPreview() {
-  const container = document.getElementById("recipe-video-preview");
-  if (!container) return;
-  if (currentRecipeVideo) {
-    container.innerHTML = `
-      <div class="preview-thumb" style="width: 140px; height: 90px; border-radius: 8px;">
-        <video src="${currentRecipeVideo}" style="width:100%; height:100%; object-fit:cover;"></video>
-        <button type="button" class="preview-thumb-remove" onclick="removeRecipeVideo()">&times;</button>
-      </div>
-    `;
-  } else {
-    container.innerHTML = "";
-  }
-}
-
-window.removeRecipeVideo = () => {
-  currentRecipeVideo = null;
-  document.getElementById("recipe-video-input").value = "";
-  renderRecipeVideoPreview();
-};
 
 window.openRecipeModal = function() {
   document.getElementById("recipe-id-input").value = "";
@@ -773,6 +753,27 @@ window.editRecipe = function(recipeId) {
   renderRecipeVideoPreview();
   window.closeRecipeDetailModal();
   document.getElementById("recipe-modal")?.classList.add("open");
+};
+
+function renderRecipeVideoPreview() {
+  const container = document.getElementById("recipe-video-preview");
+  if (!container) return;
+  if (currentRecipeVideo) {
+    container.innerHTML = `
+      <div class="preview-thumb" style="width: 140px; height: 90px; border-radius: 8px;">
+        <video src="${currentRecipeVideo}" style="width:100%; height:100%; object-fit:cover;"></video>
+        <button type="button" class="preview-thumb-remove" onclick="removeRecipeVideo()">&times;</button>
+      </div>
+    `;
+  } else {
+    container.innerHTML = "";
+  }
+}
+
+window.removeRecipeVideo = () => {
+  currentRecipeVideo = null;
+  document.getElementById("recipe-video-input").value = "";
+  renderRecipeVideoPreview();
 };
 
 window.handleRecipeSubmit = async function(e) {
