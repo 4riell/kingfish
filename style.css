@@ -918,7 +918,39 @@ body {
   height: 18px;
   cursor: pointer;
 }
+.header-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
 
+/* Ajustes no Mobile */
+@media (max-width: 768px) {
+  .header-right-actions {
+    gap: 10px;
+  }
+
+  /* Opcional: Garante alinhamento correto do menu dropdown no mobile */
+  .main-nav {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: auto;
+    width: 200px; /* Largura adequada no menu mobile */
+    background: var(--dark-blue);
+    flex-direction: column;
+    padding: 12px 1rem;
+    gap: 8px;
+    display: none;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1005;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .main-nav.show {
+    display: flex;
+  }
+}
 /* MEDIA QUERIES PARA CELULARES */
 @media (max-width: 768px) {
   .main-header {
@@ -1317,7 +1349,6 @@ body {
   color: var(--primary-blue);
   font-weight: 700;
   font-size: 1.05rem;
-  font-weight: 600;
   text-decoration: none;
 }
 
@@ -1373,7 +1404,6 @@ body {
 
 .address-link {
   font-size: 0.95rem;
-  font-weight: 600;
   line-height: 1.4;
   display: inline-flex;
   align-items: center;

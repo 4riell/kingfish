@@ -21,7 +21,7 @@
   <header class="main-header">
     <div class="header-container">
       <div class="brand-info">
-        <button class="menu-toggle-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+        <button class="menu-toggle-btn" id="menu-toggle-btn" onclick="toggleMobileMenu(event)" aria-label="Abrir menu">
           <i class="fa-solid fa-bars"></i>
         </button>
         <div class="logo-wrapper">
@@ -33,16 +33,19 @@
         </div>
       </div>
 
-      <nav class="main-nav" id="main-nav">
-        <button class="nav-btn active" onclick="showSection('catalogo')"><!--<i class="fa-solid fa-store"></i>--> Catálogo</button>
-        <button class="nav-btn" onclick="showSection('receitas')"><!--<i class="fa-solid fa-spoon"></i>--> Receitas</button>
-        <button class="nav-btn" onclick="openAboutModal()"><!--<i class="fa-solid fa-circle-info"></i>--> Informações</button>
-      </nav>
+      <!-- GRUPO DO LADO DIREITO (NAVEGAÇÃO + CARRINHO) -->
+      <div class="header-right-actions">
+        <nav class="main-nav" id="main-nav">
+          <button class="nav-btn active" onclick="showSection('catalogo')">Catálogo</button>
+          <button class="nav-btn" onclick="showSection('receitas')">Receitas</button>
+          <button class="nav-btn" onclick="openAboutModal()">Informações</button>
+        </nav>
 
-      <button class="cart-toggle-btn" onclick="toggleCart()">
-        <i class="fa-solid fa-cart-shopping"></i>
-        <span class="cart-badge" id="cart-count">0</span>
-      </button>
+        <button class="cart-toggle-btn" onclick="toggleCart()">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-badge" id="cart-count">0</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -135,8 +138,7 @@
                   target="_blank" 
                   rel="noopener noreferrer" 
                   class="info-value-link address-link">
-                  Pescados Caparaó - Av. Olívio Corrêia Pedrosa, 130 - Centro, Alegre - ES
-                  <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem; margin-left: 4px;"></i>
+                  Av. Olívio Corrêia Pedrosa, 130 - Centro, Alegre - ES
                 </a>
               </div>
             </div>

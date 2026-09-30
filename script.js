@@ -1052,3 +1052,22 @@ window.closeAboutModal = function() {
   const modal = document.getElementById("about-modal");
   if (modal) modal.classList.remove("open");
 };
+// Alterna a exibição do menu mobile evitando propagação do clique
+window.toggleMobileMenu = function(event) {
+  if (event) event.stopPropagation();
+  const nav = document.getElementById("main-nav");
+  if (nav) nav.classList.toggle("show");
+};
+
+// Evento global para fechar o menu hambúrguer ao clicar fora dele
+window.addEventListener("click", (event) => {
+  const nav = document.getElementById("main-nav");
+  const toggleBtn = document.getElementById("menu-toggle-btn");
+
+  if (nav && nav.classList.contains("show")) {
+    // Se o clique não foi dentro da navegação nem no botão hambúrguer, fecha o menu
+    if (!nav.contains(event.target) && (!toggleBtn || !toggleBtn.contains(event.target))) {
+      nav.classList.remove("show");
+    }
+  }
+});
