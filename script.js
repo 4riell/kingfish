@@ -1052,3 +1052,40 @@ window.closeAboutModal = function() {
   const modal = document.getElementById("about-modal");
   if (modal) modal.classList.remove("open");
 };
+
+// Função para arredondar o Favicon da aba
+function makeFaviconRound(iconUrl) {
+  const img = new Image();
+  img.crossOrigin = 'Anonymous';
+  img.src = iconUrl;
+  
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 64; // Tamanho ideal para favicon
+    
+    canvas.width = size;
+    canvas.height = size;
+    
+    // Desenha o círculo de corte
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    
+    // Desenha a imagem dentro do círculo
+    ctx.drawImage(img, 0, 0, size, size);
+    
+    // Atualiza a tag <link rel="icon">
+    let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+    link.type = 'image/png';
+    link.rel = 'shortcut icon';
+    link.href = canvas.toDataURL('image/png');
+    document.getElementsByTagName('head')[0].appendChild(link);
+  };
+}
+
+// Executa ao carregar a página (substitua o caminho pela sua imagem)
+document.addEventListener('DOMContentLoaded', () => {
+  makeFaviconRound('caminho/para/seu-logo.png');
+});
