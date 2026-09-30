@@ -31,7 +31,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Configurar persistência local para manter login ao atualizar
 setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error("Erro na persistência de login:", error);
 });
@@ -44,7 +43,6 @@ let isAdminLoggedIn = false;
 let currentProductImages = [];
 let currentRecipeImages = [];
 
-// Monitorar estado da autenticação
 onAuthStateChanged(auth, (user) => {
   const adminBar = document.getElementById("admin-bar");
   if (user) {
@@ -68,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function checkAdminRouteAccess() {
   const isAdminHash = window.location.hash === "#admin";
-
   if (isAdminHash && !auth.currentUser) {
     const loginModal = document.getElementById("login-modal");
     if (loginModal) loginModal.classList.add("open");
@@ -214,9 +211,14 @@ function renderProducts(products) {
       openProductDetailModal(product.id);
     };
 
-    const imagesList = (product.images && product.images.length > 0) 
-      ? product.images 
-      : [product.image || "https://via.placeholder.com/300x200?text=Sem+Imagem"];
+    let imagesList = [];
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      imagesList = product.images;
+    } else if (product.image) {
+      imagesList = [product.image];
+    } else {
+      imagesList = ["https://via.placeholder.com/300x200?text=Sem+Imagem"];
+    }
 
     const hasMultipleImages = imagesList.length > 1;
     const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${product.name}" class="carousel-img">`).join('');
@@ -226,8 +228,8 @@ function renderProducts(products) {
       : '';
 
     const navButtons = hasMultipleImages ? `
-      <button class="carousel-btn prev" onclick="event.stopPropagation(); moveCarousel('${product.id}', -1)"><i class="fa-solid fa-chevron-left"></i></button>
-      <button class="carousel-btn next" onclick="event.stopPropagation(); moveCarousel('${product.id}', 1)"><i class="fa-solid fa-chevron-right"></i></button>
+      <button type="button" class="carousel-btn prev" onclick="event.stopPropagation(); moveCarousel('${product.id}', -1)"><i class="fa-solid fa-chevron-left"></i></button>
+      <button type="button" class="carousel-btn next" onclick="event.stopPropagation(); moveCarousel('${product.id}', 1)"><i class="fa-solid fa-chevron-right"></i></button>
     ` : '';
 
     let adminControls = "";
@@ -794,16 +796,24 @@ window.openProductDetailModal = function(productId) {
   document.getElementById("modal-product-desc").innerText = prod.desc || "Sem descrição disponível.";
 
   const mediaContainer = document.getElementById("modal-product-media");
-  const imagesList = (prod.images && prod.images.length > 0) ? prod.images : [prod.image || "https://via.placeholder.com/300x200?text=Sem+Imagem"];
   
+  let imagesList = [];
+  if (Array.isArray(prod.images) && prod.images.length > 0) {
+    imagesList = prod.images;
+  } else if (prod.image) {
+    imagesList = [prod.image];
+  } else {
+    imagesList = ["https://via.placeholder.com/300x200?text=Sem+Imagem"];
+  }
+
   const hasMultiple = imagesList.length > 1;
   const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${prod.name}" class="carousel-img">`).join('');
   const dotsHTML = hasMultiple 
     ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setModalCarouselSlide(${i})"></span>`).join('')}</div>`
     : '';
   const navButtons = hasMultiple ? `
-    <button class="carousel-btn prev" onclick="moveModalCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-    <button class="carousel-btn next" onclick="moveModalCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>
+    <button type="button" class="carousel-btn prev" onclick="moveModalCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+    <button type="button" class="carousel-btn next" onclick="moveModalCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>
   ` : '';
 
   mediaContainer.innerHTML = `
