@@ -436,8 +436,13 @@
       
       <form id="recipe-form" onsubmit="handleRecipeSubmit(event)">
         <div class="form-group">
-          <label>Título da Receita / Prato:</label>
-          <input type="text" id="recipe-title" placeholder="Ex: Moqueca Capixaba de Cação" required>
+          <label>Fotos do Prato / Receita:</label>
+          <div class="drop-zone" id="recipe-drop-zone" onclick="document.getElementById('recipe-images-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+            <p><strong>Clique para buscar</strong> ou arraste as fotos da receita aqui</p>
+            <input type="file" id="recipe-images-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImageFileSelect(event)">
+          </div>
+          <div class="images-preview-container" id="recipe-images-preview"></div>
         </div>
 
         <div class="form-group">
@@ -498,9 +503,9 @@
         <button class="close-modal-btn" onclick="closeRecipeDetailModal()">&times;</button>
       </div>
       <div class="modal-detail-body">
-        <div class="modal-detail-media">
-          <img id="modal-recipe-img" src="" alt="" style="width:100%; border-radius:8px; object-fit:cover; max-height:250px;">
-        </div>
+        <!-- Mídia/Carrossel da Receita -->
+        <div class="modal-detail-media" id="modal-recipe-media"></div>
+        
         <div class="modal-detail-info">
           <div id="modal-recipe-tag"></div>
           <div style="margin-top: 10px;">

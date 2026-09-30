@@ -672,10 +672,8 @@ body {
   color: var(--accent-gold);
   padding: 10px 15px;
   border-radius: var(--border-radius);
-  margin-bottom: 20px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
   justify-content: space-between;
   align-items: center;
   box-shadow: var(--shadow);
@@ -1168,16 +1166,17 @@ body {
 }
 
 .carousel-btn:hover {
-  background: rgba(0, 0, 0, 0.85);
   transform: translateY(-50%) scale(1.05);
 }
 
 .carousel-btn.prev {
   left: 10px;
+  background: rgba(0, 0, 0, 0.85);
 }
 
 .carousel-btn.next {
   right: 10px;
+  background: rgba(0, 0, 0, 0.85);
 }
 
 .carousel-btn i {

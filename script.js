@@ -158,11 +158,30 @@ function renderRecipes(recipes) {
     const card = document.createElement("div");
     card.className = "recipe-card";
     card.onclick = (e) => {
-      if (e.target.closest('.admin-card-actions')) return;
+      if (e.target.closest('.admin-card-actions') || e.target.closest('.carousel-btn') || e.target.closest('.carousel-dots')) return;
       openRecipeDetailModal(recipe.id);
     };
 
-    const imageUrl = recipe.image || "https://via.placeholder.com/300x200?text=Receita";
+    let imagesList = [];
+    if (Array.isArray(recipe.images) && recipe.images.length > 0) {
+      imagesList = recipe.images;
+    } else if (recipe.image) {
+      imagesList = [recipe.image];
+    } else {
+      imagesList = ["https://via.placeholder.com/300x200?text=Receita"];
+    }
+
+    const hasMultipleImages = imagesList.length > 1;
+    const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${recipe.title}" class="carousel-img">`).join('');
+    
+    const dotsHTML = hasMultipleImages 
+      ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="event.stopPropagation(); setCarouselSlide('recipe-${recipe.id}',${i})"></span>`).join('')}</div>`
+      : '';
+
+    const navButtons = hasMultipleImages ? `
+      <button type="button" class="carousel-btn prev" onclick="event.stopPropagation(); moveCarousel('recipe-${recipe.id}', -1)"><i class="fa-solid fa-chevron-left"></i></button>
+      <button type="button" class="carousel-btn next" onclick="event.stopPropagation(); moveCarousel('recipe-${recipe.id}', 1)"><i class="fa-solid fa-chevron-right"></i></button>
+    ` : '';
 
     let adminControls = "";
     if (isAdminLoggedIn) {
@@ -174,8 +193,12 @@ function renderRecipes(recipes) {
     }
 
     card.innerHTML = `
-      <div class="recipe-img-wrapper">
-        <img src="${imageUrl}" alt="${recipe.title}">
+      <div class="carousel-container" id="carousel-recipe-${recipe.id}" data-index="0" data-total="${imagesList.length}">
+        <div class="carousel-slide" id="slide-recipe-${recipe.id}">
+          ${slidesHTML}
+        </div>
+        ${navButtons}
+        ${dotsHTML}
       </div>
       <div class="recipe-content">
         <h3 class="recipe-title">${recipe.title}</h3>
@@ -415,7 +438,7 @@ async function processRecipeImageFiles(files) {
   for (const file of Array.from(files)) {
     if (!file.type.startsWith('image/')) continue;
     const compressedBase64 = await compressImage(file);
-    currentRecipeImages = [compressedBase64];
+    currentRecipeImages.push(compressedBase64);
   }
   renderRecipeImagePreviews();
 }
@@ -545,7 +568,7 @@ window.handleRecipeSubmit = async function(e) {
     relatedProduct: document.getElementById("recipe-prod-select").value,
     ingredients: document.getElementById("recipe-ingredients").value,
     instructions: document.getElementById("recipe-instructions").value,
-    image: currentRecipeImages.length > 0 ? currentRecipeImages[0] : ""
+    images: currentRecipeImages.length > 0 ? currentRecipeImages : []
   };
 
   try {
@@ -1025,9 +1048,36 @@ window.openRecipeDetailModal = function(recipeId) {
   const modal = document.getElementById("recipe-detail-modal");
   document.getElementById("modal-recipe-title").innerText = recipe.title;
 
-  const imgEl = document.getElementById("modal-recipe-img");
-  imgEl.src = recipe.image || "https://via.placeholder.com/300x200?text=Receita";
-  imgEl.alt = recipe.title;
+  const mediaContainer = document.getElementById("modal-recipe-media");
+  
+  let imagesList = [];
+  if (Array.isArray(recipe.images) && recipe.images.length > 0) {
+    imagesList = recipe.images;
+  } else if (recipe.image) {
+    imagesList = [recipe.image];
+  } else {
+    imagesList = ["https://via.placeholder.com/300x200?text=Receita"];
+  }
+
+  const hasMultiple = imagesList.length > 1;
+  const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${recipe.title}" class="carousel-img">`).join('');
+  const dotsHTML = hasMultiple 
+    ? `<div class="carousel-dots">${imagesList.map((_, i) => `<span class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="setModalCarouselSlide(${i})"></span>`).join('')}</div>`
+    : '';
+  const navButtons = hasMultiple ? `
+    <button type="button" class="carousel-btn prev" onclick="moveModalCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+    <button type="button" class="carousel-btn next" onclick="moveModalCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>
+  ` : '';
+
+  mediaContainer.innerHTML = `
+    <div class="carousel-container" id="modal-carousel" data-index="0" data-total="${imagesList.length}">
+      <div class="carousel-slide" id="modal-carousel-slide">
+        ${slidesHTML}
+      </div>
+      ${navButtons}
+      ${dotsHTML}
+    </div>
+  `;
 
   const tagEl = document.getElementById("modal-recipe-tag");
   tagEl.innerHTML = recipe.relatedProduct ? `<div class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></div>` : '';
