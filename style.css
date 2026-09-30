@@ -1317,6 +1317,7 @@ body {
   color: var(--primary-blue);
   font-weight: 700;
   font-size: 1.05rem;
+  font-weight: 600;
   text-decoration: none;
 }
 
