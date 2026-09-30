@@ -133,15 +133,105 @@
   </footer>
 
   <!-- PAINEL LATERAL DO CARRINHO -->
+  <!-- PAINEL LATERAL DO CARRINHO COM FORMULÁRIO DE CHECKOUT -->
   <div class="cart-sidebar" id="cart-sidebar">
     <div class="cart-header">
       <h2><i class="fa-solid fa-basket-shopping"></i> Seu Pedido</h2>
       <button class="close-cart-btn" onclick="toggleCart()">&times;</button>
     </div>
+    
     <div class="cart-items" id="cart-items"></div>
+
+    <!-- FORMULÁRIO DE ENTREGA / CHECKOUT -->
+    <div class="checkout-form-container" id="checkout-form-container" style="padding: 1rem; border-top: 1px solid #eee;">
+      <h3 style="font-size: 1rem; margin-bottom: 0.8rem; color: var(--primary-blue);">Opções de Entrega e Pagamento</h3>
+      
+      <div class="form-group">
+        <label>Tipo de Pedido:</label>
+        <select id="checkout-type" onchange="toggleDeliveryFields()">
+          <option value="entrega">Entrega</option>
+          <option value="retirada">Retirada no Balcão</option>
+        </select>
+      </div>
+
+      <!-- CAMPOS DE ENDEREÇO (EXIBIDOS PARA ENTREGA) -->
+      <div id="delivery-fields">
+        <div class="form-group">
+          <label for="checkout-cep">CEP:</label>
+          <input type="text" id="checkout-cep" placeholder="00000-000" maxlength="9" onblur="fetchAddressByCEP()">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkout-cidade">Cidade:</label>
+            <input type="text" id="checkout-cidade" placeholder="Cidade" readonly style="background-color: #eef2f5;">
+          </div>
+          <div class="form-group">
+            <label for="checkout-bairro">Bairro:</label>
+            <input type="text" id="checkout-bairro" placeholder="Bairro">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="checkout-rua">Rua / Logradouro:</label>
+          <input type="text" id="checkout-rua" placeholder="Nome da rua">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkout-numero">Número:</label>
+            <input type="text" id="checkout-numero" placeholder="Ex: 123">
+          </div>
+          <div class="form-group checkbox-group" style="align-self: flex-end; margin-bottom: 10px;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checkout-sem-numero" onchange="toggleNoNumber(this)">
+              <span>Sem número</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkout-complemento">Complemento:</label>
+            <input type="text" id="checkout-complemento" placeholder="Apto, Bloco, etc.">
+          </div>
+          <div class="form-group">
+            <label for="checkout-referencia">Ponto de Referência:</label>
+            <input type="text" id="checkout-referencia" placeholder="Próximo a...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="checkout-taxa">Taxa de Entrega (R$):</label>
+          <input type="number" id="checkout-taxa" step="0.01" value="5.00" onchange="updateCartUI()">
+        </div>
+      </div>
+
+      <!-- FORMA DE PAGAMENTO E OBSERVAÇÕES -->
+      <div class="form-group">
+        <label for="checkout-pagamento">Forma de Pagamento:</label>
+        <select id="checkout-pagamento" onchange="toggleTrocoField()">
+          <option value="pix">Pix</option>
+          <option value="credito">Cartão de Crédito</option>
+          <option value="debito">Cartão de Débito</option>
+          <option value="dinheiro">Dinheiro</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="troco-group" style="display: none;">
+        <label for="checkout-troco">Precisa de troco para quanto? (R$):</label>
+        <input type="text" id="checkout-troco" placeholder="Ex: 50.00 ou Não preciso">
+      </div>
+
+      <div class="form-group">
+        <label for="checkout-obs">Observações do Pedido:</label>
+        <textarea id="checkout-obs" rows="2" placeholder="Ex: Tirar a escama, entregar após as 18h..."></textarea>
+      </div>
+    </div>
+
     <div class="cart-footer">
       <div class="cart-total">
-        <span>Total Estimado:</span>
+        <span>Total Geral:</span>
         <strong id="cart-total-price">R$ 0,00</strong>
       </div>
       <button class="btn-whatsapp" onclick="sendOrderToWhatsApp()">

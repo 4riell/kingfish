@@ -292,7 +292,7 @@ body {
 .product-price {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #27ae60;
+  color: #2c3e50;
   margin-bottom: 10px;
 }
 
@@ -571,7 +571,7 @@ body {
 
 .btn-whatsapp {
   width: 100%;
-  background-color: #25d366;
+  background-color: #278f4e;
   color: white;
   border: none;
   padding: 12px;
@@ -729,8 +729,8 @@ body {
   cursor: pointer;
 }
 
-.btn-edit-prod { background-color: #f39c12; }
-.btn-delete-prod { background-color: #e74c3c; }
+.btn-edit-prod { background-color: #c8a44a; }
+.btn-delete-prod { background-color: #76190f; }
 
 .admin-login-card {
   max-width: 380px;
@@ -878,7 +878,7 @@ body {
   position: absolute;
   top: 10px;
   left: 10px;
-  background-color: #e74c3c;
+  background-color: #2c3e50;
   color: #ffffff;
   font-size: 0.75rem;
   font-weight: bold;
@@ -1010,7 +1010,7 @@ body {
   position: absolute;
   top: 10px;
   left: 10px;
-  background-color: #e63946;
+  background-color: #76190f;
   color: #fff;
   font-size: 0.8rem;
   font-weight: 800;
@@ -1018,10 +1018,6 @@ body {
   border-radius: 4px;
   z-index: 2;
   box-shadow: 0 2px 6px rgba(230, 57, 70, 0.4);
-}
-
-.product-card.on-sale {
-  border: 2px solid #e63946;
 }
 
 .promo-filter-btn {
@@ -1037,7 +1033,7 @@ body {
 }
 
 .product-price.promo {
-  color: #e63946;
+  color: #76190f;
   font-weight: bold;
 }
 
@@ -1202,4 +1198,38 @@ body {
   max-height: 350px;
   background-color: #f5f5f5;
   border-radius: 8px;
+}
+
+/* AJUSTES DO FORMULÁRIO DE CHECKOUT DENTRO DO CARRINHO */
+.checkout-form-container {
+  max-height: 350px;
+  overflow-y: auto;
+  background-color: #fafafa;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.checkout-form-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.checkout-form-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.checkout-form-container .form-group {
+  margin-bottom: 0.75rem;
+}
+
+.checkout-form-container label {
+  font-size: 0.8rem;
+  color: #333;
+}
+
+.checkout-form-container input,
+.checkout-form-container select,
+.checkout-form-container textarea {
+  padding: 6px 8px;
+  font-size: 0.85rem;
 }
