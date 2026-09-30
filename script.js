@@ -474,13 +474,13 @@ function renderRecipeImagePreviews() {
   container.innerHTML = "";
 
   currentRecipeImages.forEach((imgSrc, index) => {
-    const item = document.createElement("div");
-    item.className = "preview-item";
-    item.innerHTML = `
+    const thumb = document.createElement("div");
+    thumb.className = "preview-thumb";
+    thumb.innerHTML = `
       <img src="${imgSrc}" alt="Previsualização">
-      <button type="button" class="remove-btn" onclick="removeRecipeImage(${index})">&times;</button>
+      <button type="button" class="preview-thumb-remove" onclick="removeRecipeImage(${index})">&times;</button>
     `;
-    container.appendChild(item);
+    container.appendChild(thumb);
   });
 }
 
