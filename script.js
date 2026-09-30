@@ -186,8 +186,13 @@ function renderRecipes(recipes) {
     let adminControls = "";
     if (isAdminLoggedIn) {
       adminControls = `
-        <div class="admin-card-actions" style="margin-top: 15px;">
-          <button class="btn-delete-prod" onclick="deleteRecipe('${recipe.id}')"><i class="fa-solid fa-trash"></i> Excluir Receita</button>
+        <div class="admin-card-actions" style="margin-top: 15px; display: flex; gap: 8px;">
+          <button class="btn-edit-prod" onclick="event.stopPropagation(); editRecipe('${recipe.id}')">
+            <i class="fa-solid fa-pen"></i> Editar
+          </button>
+          <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteRecipe('${recipe.id}')">
+            <i class="fa-solid fa-trash"></i> Excluir
+          </button>
         </div>
       `;
     }
@@ -265,9 +270,13 @@ function renderProducts(products) {
     let adminControls = "";
     if (isAdminLoggedIn) {
       adminControls = `
-        <div class="admin-card-actions">
-          <button class="btn-edit-prod" onclick="event.stopPropagation(); openProductModal('${product.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
-          <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteProduct('${product.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>
+        <div class="admin-card-actions" style="margin-top: 15px; display: flex; gap: 8px;">
+          <button class="btn-edit-prod" onclick="event.stopPropagation(); editRecipe('${recipe.id}')">
+            <i class="fa-solid fa-pen"></i> Editar
+          </button>
+          <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteRecipe('${recipe.id}')">
+            <i class="fa-solid fa-trash"></i> Excluir
+          </button>
         </div>
       `;
     }
@@ -460,20 +469,32 @@ function renderImagePreviews() {
 }
 
 function renderRecipeImagePreviews() {
-  const previewContainer = document.getElementById("recipe-images-preview");
-  if (!previewContainer) return;
-  previewContainer.innerHTML = "";
+  const container = document.getElementById("recipe-images-preview");
+  if (!container) return;
+  container.innerHTML = "";
 
-  currentRecipeImages.forEach((imgBase64, index) => {
-    const thumb = document.createElement("div");
-    thumb.className = "preview-thumb";
-    thumb.innerHTML = `
-      <img src="${imgBase64}" alt="Preview">
-      <button type="button" class="preview-thumb-remove" onclick="removeRecipeImagePreview(${index})">&times;</button>
+  currentRecipeImages.forEach((imgSrc, index) => {
+    const item = document.createElement("div");
+    item.className = "preview-item";
+    item.innerHTML = `
+      <img src="${imgSrc}" alt="Previsualização">
+      <button type="button" class="remove-btn" onclick="removeRecipeImage(${index})">&times;</button>
     `;
-    previewContainer.appendChild(thumb);
+    container.appendChild(item);
   });
 }
+
+window.removeRecipeImage = function(index) {
+  currentRecipeImages.splice(index, 1);
+  renderRecipeImagePreviews();
+};
+
+window.handleRecipeImageFileSelect = async function(event) {
+  const files = event.target.files;
+  if (files) {
+    await processRecipeImageFiles(files);
+  }
+};
 
 window.removeImagePreview = function(index) {
   currentProductImages.splice(index, 1);
@@ -526,21 +547,45 @@ window.closeProductModal = function() {
   if (modal) modal.classList.remove("open");
 };
 
+// Abrir modal para NOVA receita
 window.openRecipeModal = function() {
-  const modal = document.getElementById("recipe-modal");
-  const form = document.getElementById("recipe-form");
-  if (form) form.reset();
+  document.getElementById("recipe-id-input").value = "";
+  document.getElementById("recipe-modal-title").innerText = "Adicionar Receita";
+  document.getElementById("recipe-form").reset();
   currentRecipeImages = [];
-
-  const selectProd = document.getElementById("recipe-prod-select");
-  if (selectProd) {
-    selectProd.innerHTML = '<option value="">-- Selecionar Produto Envolvido --</option>';
-    allProducts.forEach(p => {
-      selectProd.innerHTML += `<option value="${p.name}">${p.name}</option>`;
-    });
-  }
-
   renderRecipeImagePreviews();
+  
+  const modal = document.getElementById("recipe-modal");
+  if (modal) modal.classList.add("open");
+};
+
+// Abrir modal para EDITAR receita existente
+window.editRecipe = function(recipeId) {
+  const recipe = allRecipes.find(r => r.id === recipeId);
+  if (!recipe) return;
+
+  // Preenche os campos do formulário
+  document.getElementById("recipe-id-input").value = recipe.id;
+  document.getElementById("recipe-modal-title").innerText = "Editar Receita";
+  document.getElementById("recipe-title").value = recipe.title || "";
+  document.getElementById("recipe-prod-select").value = recipe.relatedProduct || "";
+  document.getElementById("recipe-ingredients").value = recipe.ingredients || "";
+  document.getElementById("recipe-instructions").value = recipe.instructions || "";
+
+  // Carrega as imagens existentes
+  if (Array.isArray(recipe.images) && recipe.images.length > 0) {
+    currentRecipeImages = [...recipe.images];
+  } else if (recipe.image) {
+    currentRecipeImages = [recipe.image];
+  } else {
+    currentRecipeImages = [];
+  }
+  
+  renderRecipeImagePreviews();
+
+  // Fecha o modal de detalhes (se estiver aberto) e abre o modal de edição
+  closeRecipeDetailModal();
+  const modal = document.getElementById("recipe-modal");
   if (modal) modal.classList.add("open");
 };
 
@@ -553,7 +598,7 @@ window.handleRecipeSubmit = async function(e) {
   e.preventDefault();
 
   if (!auth.currentUser) {
-    alert("Você precisa estar autenticado como administrador para adicionar receitas.");
+    alert("Você precisa estar autenticado como administrador para salvar receitas.");
     return;
   }
 
@@ -563,17 +608,26 @@ window.handleRecipeSubmit = async function(e) {
     saveBtn.disabled = true;
   }
 
+  const recipeId = document.getElementById("recipe-id-input").value;
   const recipeData = {
     title: document.getElementById("recipe-title").value.toUpperCase(),
     relatedProduct: document.getElementById("recipe-prod-select").value,
     ingredients: document.getElementById("recipe-ingredients").value,
     instructions: document.getElementById("recipe-instructions").value,
-    images: currentRecipeImages.length > 0 ? currentRecipeImages : []
+    images: currentRecipeImages
   };
 
   try {
-    await addDoc(collection(db, "recipes"), recipeData);
-    alert("Receita adicionada com sucesso!");
+    if (recipeId) {
+      // Atualiza receita existente
+      const recipeRef = doc(db, "recipes", recipeId);
+      await updateDoc(recipeRef, recipeData);
+      alert("Receita atualizada com sucesso!");
+    } else {
+      // Cria nova receita
+      await addDoc(collection(db, "recipes"), recipeData);
+      alert("Receita criada com sucesso!");
+    }
     window.closeRecipeModal();
   } catch (error) {
     console.error("Erro ao salvar receita:", error);
@@ -1080,7 +1134,22 @@ window.openRecipeDetailModal = function(recipeId) {
   `;
 
   const tagEl = document.getElementById("modal-recipe-tag");
-  tagEl.innerHTML = recipe.relatedProduct ? `<div class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></div>` : '';
+  
+  let adminModalActions = "";
+  if (isAdminLoggedIn) {
+    adminModalActions = `
+      <div style="margin-top: 15px;">
+        <button class="btn-edit-prod" onclick="editRecipe('${recipe.id}')">
+          <i class="fa-solid fa-pen"></i> Editar Receita
+        </button>
+      </div>
+    `;
+  }
+
+  tagEl.innerHTML = `
+    ${recipe.relatedProduct ? `<div class="recipe-product-tag"><i class="fa-solid fa-fish"></i> Usa: <strong>${recipe.relatedProduct}</strong></div>` : ''}
+    ${adminModalActions}
+  `;
 
   document.getElementById("modal-recipe-ingredients").innerHTML = recipe.ingredients ? recipe.ingredients.replace(/\n/g, '<br>') : 'Nenhum ingrediente informado.';
   document.getElementById("modal-recipe-instructions").innerHTML = recipe.instructions ? recipe.instructions.replace(/\n/g, '<br>') : 'Nenhum modo de preparo informado.';

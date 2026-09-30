@@ -427,14 +427,41 @@
   </div>
 
   <!-- MODAL DE CADASTRO DE RECEITAS -->
+  <!-- Modal de Adicionar / Editar Receita -->
   <div class="modal-overlay" id="recipe-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Adicionar Receita / Prato</h2>
+        <h2 id="recipe-modal-title">Adicionar Receita</h2>
         <button class="close-modal-btn" onclick="closeRecipeModal()">&times;</button>
       </div>
       
       <form id="recipe-form" onsubmit="handleRecipeSubmit(event)">
+        <!-- Campo Oculto para Guardar o ID em Modo de Edição -->
+        <input type="hidden" id="recipe-id-input" value="">
+
+        <div class="form-group">
+          <label for="recipe-title">Título da Receita:</label>
+          <input type="text" id="recipe-title" required placeholder="Ex: Bacalhau à Brás">
+        </div>
+
+        <div class="form-group">
+          <label for="recipe-prod-select">Produto Relacionado (Opcional):</label>
+          <select id="recipe-prod-select">
+            <option value="">Nenhum produto associado</option>
+            <!-- Opções carregadas dinamicamente via JS -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="recipe-ingredients">Ingredientes:</label>
+          <textarea id="recipe-ingredients" rows="4" placeholder="Ex: - 500g de bacalhau&#10;- 500g de batata palha"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="recipe-instructions">Modo de Preparo:</label>
+          <textarea id="recipe-instructions" rows="4" placeholder="Ex: 1. Refogue a cebola e o alho..."></textarea>
+        </div>
+
         <div class="form-group">
           <label>Fotos do Prato / Receita:</label>
           <div class="drop-zone" id="recipe-drop-zone" onclick="document.getElementById('recipe-images-input').click()">
@@ -445,34 +472,10 @@
           <div class="images-preview-container" id="recipe-images-preview"></div>
         </div>
 
-        <div class="form-group">
-          <label>Produto Envolvido (Opcional):</label>
-          <select id="recipe-prod-select">
-            <option value="">-- Selecionar Produto Envolvido --</option>
-          </select>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeRecipeModal()">Cancelar</button>
+          <button type="submit" class="btn-save" id="btn-save-recipe">Salvar Receita</button>
         </div>
-
-        <div class="form-group">
-          <label>Foto do Prato Pronto:</label>
-          <div class="drop-zone" id="recipe-drop-zone" onclick="document.getElementById('recipe-images-input').click()">
-            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
-            <p><strong>Clique para buscar</strong> ou arraste a foto do prato</p>
-            <input type="file" id="recipe-images-input" accept="image/*" style="display: none;" onchange="handleRecipeImageFileSelect(event)">
-          </div>
-          <div class="images-preview-container" id="recipe-images-preview"></div>
-        </div>
-
-        <div class="form-group">
-          <label>Ingredientes:</label>
-          <textarea id="recipe-ingredients" placeholder="1kg de peixe&#10;2 tomates picados&#10;Coentro a gosto..." rows="3" required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Modo de Preparo:</label>
-          <textarea id="recipe-instructions" placeholder="1. Tempere o peixe com sal e limão...&#10;2. Refogue a cebola e o alho..." rows="4" required></textarea>
-        </div>
-
-        <button type="submit" class="btn-primary" id="btn-save-recipe">Salvar Receita</button>
       </form>
     </div>
   </div>
