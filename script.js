@@ -494,7 +494,7 @@ window.sendOrderToWhatsApp = function() {
     return;
   }
 
-  const phoneNumbers = ["5528988037725", "5528999943877"];
+  const phoneNumbers = ["5528999868639"];
   let message = "*NOVO PEDIDO - PESCADOS CAPARAÓ*\n\n";
 
   let total = 0;
