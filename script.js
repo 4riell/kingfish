@@ -780,8 +780,8 @@ function updateCartUI() {
   });
 
   const deliveryType = document.getElementById("checkout-type")?.value || "entrega";
-  const taxaVal = parseFloat(document.getElementById("checkout-taxa")?.value) || 0;
-  const taxa = deliveryType === "entrega" ? taxaVal : 0;
+  // Taxa calculada automaticamente: R$ 5,00 para entrega e R$ 0,00 para retirada no balcão
+  const taxa = deliveryType === "entrega" ? 5.00 : 0;
   const totalGeral = itemsSubtotal + taxa;
 
   if (cartCount) cartCount.innerText = itemCount;
@@ -796,8 +796,8 @@ window.sendOrderToWhatsApp = function() {
 
   const deliveryType = document.getElementById("checkout-type")?.value;
   let deliveryDetails = "";
-  // Taxa fixa de entrega de R$ 5,00
-  const taxaDelivery = 5.00;
+  // Taxa fixa calculada automaticamente
+  const taxaDelivery = deliveryType === "entrega" ? 5.00 : 0;
 
   if (deliveryType === "entrega") {
     const cep = document.getElementById("checkout-cep")?.value.trim();
@@ -808,7 +808,6 @@ window.sendOrderToWhatsApp = function() {
     const complemento = document.getElementById("checkout-complemento")?.value.trim();
     const referencia = document.getElementById("checkout-referencia")?.value.trim();
 
-    // Validação dos campos obrigatórios de entrega (apenas complemento é opcional)
     if (!cep || !cidade || !bairro || !rua || !numero || !referencia) {
       alert("Por favor, preencha todos os campos obrigatórios de entrega (apenas o Complemento é opcional).");
       return;
@@ -830,13 +829,11 @@ window.sendOrderToWhatsApp = function() {
   const troco = document.getElementById("checkout-troco")?.value.trim();
   const obs = document.getElementById("checkout-obs")?.value.trim();
 
-  // Validação do campo de pagamento
   if (!pagamento) {
     alert("Por favor, selecione a forma de pagamento.");
     return;
   }
 
-  // Se for dinheiro, exige a informação do troco ou confirmação
   if (pagamento === "DINHEIRO" && !troco) {
     alert("Por favor, informe se precisa de troco (ou digite 'Não precisa').");
     return;
@@ -851,7 +848,7 @@ window.sendOrderToWhatsApp = function() {
     message += `• *${item.name}*\n  Qtd/Peso: ${item.quantity} ${item.unit} | R$ ${subtotal.toFixed(2)}\n`;
   });
 
-  const totalGeral = itemsTotal + (deliveryType === "entrega" ? taxaDelivery : 0);
+  const totalGeral = itemsTotal + taxaDelivery;
 
   message += `\n*RESUMO DA COMPRA:*`;
   message += `\nSubtotal: R$ ${itemsTotal.toFixed(2)}`;
@@ -867,7 +864,6 @@ window.sendOrderToWhatsApp = function() {
     message += `\n*Troco para:* ${troco}`;
   }
 
-  // Observação é opcional
   if (obs) {
     message += `\n\n*OBSERVAÇÕES:*\n${obs}`;
   }
