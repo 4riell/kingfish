@@ -825,46 +825,6 @@ window.fetchAddressByCEP = async function() {
   }
 };
 
-function updateCartUI() {
-  const cartItemsContainer = document.getElementById("cart-items");
-  const cartCount = document.getElementById("cart-count");
-  const cartTotal = document.getElementById("cart-total-price");
-
-  if (!cartItemsContainer) return;
-  cartItemsContainer.innerHTML = "";
-  let itemsSubtotal = 0;
-  let itemCount = 0;
-
-  cart.forEach((item, index) => {
-    const itemTotal = item.price * item.quantity;
-    itemsSubtotal += itemTotal;
-    itemCount += 1;
-
-    const div = document.createElement("div");
-    div.className = "cart-item";
-    div.innerHTML = `
-      <div class="cart-item-header">
-        <span>${item.name}</span>
-        <span>R$ ${itemTotal.toFixed(2)}</span>
-      </div>
-      <div class="cart-item-controls">
-        <label>Qtd (${item.unit}):</label>
-        <input type="number" step="0.1" min="0.1" value="${item.quantity}" onchange="updateQuantity(${index}, this.value)">
-        <button onclick="removeFromCart(${index})" style="color:#76190f; background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
-      </div>
-    `;
-    cartItemsContainer.appendChild(div);
-  });
-
-  const deliveryType = document.getElementById("checkout-type")?.value || "entrega";
-  // Taxa calculada automaticamente: R$ 5,00 para entrega e R$ 0,00 para retirada no balcão
-  const taxa = deliveryType === "entrega" ? 5.00 : 0;
-  const totalGeral = itemsSubtotal + taxa;
-
-  if (cartCount) cartCount.innerText = itemCount;
-  if (cartTotal) cartTotal.innerText = `R$ ${totalGeral.toFixed(2)}`;
-}
-
 window.sendOrderToWhatsApp = function() {
   if (cart.length === 0) {
     alert("Seu carrinho está vazio!");
@@ -1190,3 +1150,67 @@ window.addEventListener("click", (event) => {
     }
   }
 });
+
+// ABRIR E FECHAR O MODAL DE ENTREGA
+window.openDeliveryModal = function() {
+  if (cart.length === 0) {
+    alert("Seu carrinho está vazio!");
+    return;
+  }
+  // Fecha a gaveta lateral do carrinho
+  toggleCart(false);
+  
+  // Abre o modal de entrega
+  const modal = document.getElementById("delivery-modal");
+  if (modal) modal.classList.add("open");
+
+  // Atualiza os valores dentro do modal
+  updateCartUI();
+};
+
+window.closeDeliveryModal = function() {
+  const modal = document.getElementById("delivery-modal");
+  if (modal) modal.classList.remove("open");
+};
+
+// ATUALIZAR FUNÇÃO updateCartUI DENTRO DO SCRIPT
+function updateCartUI() {
+  const cartItemsContainer = document.getElementById("cart-items");
+  const cartCount = document.getElementById("cart-count");
+  const cartTotal = document.getElementById("cart-total-price");
+  const modalTotal = document.getElementById("modal-total-price");
+
+  if (!cartItemsContainer) return;
+  cartItemsContainer.innerHTML = "";
+  let itemsSubtotal = 0;
+  let itemCount = 0;
+
+  cart.forEach((item, index) => {
+    const itemTotal = item.price * item.quantity;
+    itemsSubtotal += itemTotal;
+    itemCount += 1;
+
+    const div = document.createElement("div");
+    div.className = "cart-item";
+    div.innerHTML = `
+      <div class="cart-item-header">
+        <span>${item.name}</span>
+        <span>R$ ${itemTotal.toFixed(2)}</span>
+      </div>
+      <div class="cart-item-controls">
+        <label>Qtd (${item.unit}):</label>
+        <input type="number" step="0.1" min="0.1" value="${item.quantity}" onchange="updateQuantity(${index}, this.value)">
+        <button onclick="removeFromCart(${index})" style="color:#76190f; background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `;
+    cartItemsContainer.appendChild(div);
+  });
+
+  const deliveryType = document.getElementById("checkout-type")?.value || "entrega";
+  const taxa = deliveryType === "entrega" ? 5.00 : 0;
+  const totalGeral = itemsSubtotal + taxa;
+
+  if (cartCount) cartCount.innerText = itemCount;
+  if (cartTotal) cartTotal.innerText = `R$ ${itemsSubtotal.toFixed(2)}`;
+  if (modalTotal) modalTotal.innerText = `R$ ${totalGeral.toFixed(2)}`;
+}
