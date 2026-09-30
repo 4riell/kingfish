@@ -961,12 +961,10 @@ body {
 
 /* Botão de filtro de promoção destacado */
 .promo-filter-btn {
-  color: #e63946;
   font-weight: bold;
 }
 
 .promo-filter-btn.active {
-  background-color: #e63946;
   color: #fff;
 }
 
@@ -1004,4 +1002,22 @@ body {
   align-items: baseline;
   gap: 4px;
   margin-bottom: 8px;
+}
+
+/* Garante a cor vermelha constante do botão de Promoções (Desktop e Mobile) */
+.filter-btn.promo-filter-btn {
+  background-color: #e63946 !important;
+  color: #ffffff !important;
+  border-color: #e63946 !important;
+  font-weight: bold;
+}
+
+/* Mantém o estilo destacado quando estiver selecionado/ativo */
+.filter-btn.promo-filter-btn.active,
+.filter-btn.promo-filter-btn:focus,
+.filter-btn.promo-filter-btn:active {
+  background-color: #c12a36 !important;
+  color: #ffffff !important;
+  border-color: #c12a36 !important;
+  box-shadow: 0 0 8px rgba(230, 57, 70, 0.5);
 }
