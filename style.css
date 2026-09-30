@@ -1038,7 +1038,6 @@ body {
 }
 
 .price-container {
-  display: flex;
   align-items: baseline;
   gap: 4px;
   margin-bottom: 8px;

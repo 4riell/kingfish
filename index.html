@@ -32,9 +32,9 @@
       </div>
 
       <nav class="main-nav" id="main-nav">
-        <button class="nav-btn active" onclick="showSection('catalogo')"><i class="fa-solid fa-store"></i> Catálogo</button>
-        <button class="nav-btn" onclick="showSection('receitas')"><i class="fa-solid fa-spoon"></i> Receitas</button>
-        <button class="nav-btn" onclick="showSection('sobre')"><i class="fa-solid fa-circle-info"></i> Sobre Nós</button>
+        <button class="nav-btn active" onclick="showSection('catalogo')"><!--<i class="fa-solid fa-store"></i>--> Catálogo</button>
+        <button class="nav-btn" onclick="showSection('receitas')"><!--<i class="fa-solid fa-spoon"></i>--> Receitas</button>
+        <button class="nav-btn" onclick="showSection('sobre')"><!--<i class="fa-solid fa-circle-info"></i>--> Sobre Nós</button>
       </nav>
 
       <button class="cart-toggle-btn" onclick="toggleCart()">
@@ -49,7 +49,7 @@
     <!-- BARRA DE AÇÕES DO ADMINISTRADOR -->
     <div id="admin-bar" class="admin-bar" style="display: none;">
       <div class="admin-status">
-        <i class="fa-solid fa-user-shield"></i> Modo Administrador Ativo
+        <!-- <i class="fa-solid fa-user-shield"></i> Modo Administrador Ativo -->
       </div>
       <div class="admin-actions">
         <button class="btn-add-product" onclick="openProductModal()">Adicionar Produto</button>
@@ -79,7 +79,7 @@
     <!-- SEÇÃO: RECEITAS -->
     <section id="sec-receitas" class="content-section">
       <div class="category-filter-wrapper">
-        <h2 style="color: var(--primary-blue); font-size: 1.5rem; margin-bottom: 1rem;"><i class="fa-solid fa-spoon"></i> Receitas e Sugestões de Pratos</h2>
+        <h2 style="color: var(--primary-blue); font-size: 1.5rem; margin-bottom: 1rem;">Receitas e Sugestões de Pratos</h2>
       </div>
       <div class="recipes-grid" id="recipes-container"></div>
     </section>
@@ -134,7 +134,7 @@
 
   <!-- PAINEL LATERAL DO CARRINHO -->
   <!-- PAINEL LATERAL DO CARRINHO COM FORMULÁRIO DE CHECKOUT -->
-  <div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-sidebar" id="cart-sidebar" style=" z-index: 9999; ">
     <div class="cart-header">
       <h2><i class="fa-solid fa-basket-shopping"></i> Seu Pedido</h2>
       <button class="close-cart-btn" onclick="toggleCart()">&times;</button>
