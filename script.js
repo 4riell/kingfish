@@ -848,8 +848,7 @@ window.openRecipeDetailModal = function(recipeId) {
   
   if (imagesList.length > 0) {
     // max-height inserido (220px) e object-fit:contain
-    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; max-height: 220px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit:contain; background:#f8fafc;">`;
-    media1.style.display = "block";
+    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; max-height: 250px; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;">`;    media1.style.display = "block";
     setupImageZoom(media1.querySelector('img'));
   } else {
     media1.style.display = "none";

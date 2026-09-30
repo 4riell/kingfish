@@ -605,11 +605,13 @@ body {
   position: relative;
   background: var(--white);
   width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 600px;
+  max-height: 85vh; /* Limita a altura máxima a 85% da tela */
+  display: flex;
+  flex-direction: column;
   border-radius: var(--border-radius);
   padding: 1.5rem;
+  overflow: hidden; /* Evita que o conteúdo transborde para fora da caixa principal */
 }
 
 .modal-header {
@@ -1097,9 +1099,22 @@ body {
 }
 
 .modal-detail-body {
+  overflow-y: auto; /* Adiciona barra de rolagem vertical apenas no corpo */
+  max-height: calc(85vh - 100px); /* Subtrai o espaço do cabeçalho */
+  padding-right: 5px;
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
+
+/* Opcional: Estilizar a barra de rolagem interna para ficar mais elegante */
+.modal-detail-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-detail-body::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
 }
 
 .modal-desc {
