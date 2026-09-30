@@ -645,10 +645,8 @@ window.removeRecipeImage = (index) => { currentRecipeImages.splice(index, 1); re
 window.openProductModal = function(productId = null) {
   const modal = document.getElementById("admin-modal");
   const form = document.getElementById("product-form");
-  const title = document.getElementById("modal-form-title");
 
   if (productId) {
-    title.innerText = "Editar Produto";
     const prod = allProducts.find(p => p.id === productId);
     if (!prod) return;
     document.getElementById("prod-id").value = prod.id;
@@ -662,8 +660,7 @@ window.openProductModal = function(productId = null) {
     document.getElementById("prod-on-sale").checked = !!prod.isOnSale;
     currentProductImages = prod.images ? [...prod.images] : (prod.image ? [prod.image] : []);
   } else {
-    title.innerText = "Adicionar Produto";
-    form.reset();
+    if (form) form.reset();
     document.getElementById("prod-id").value = "";
     document.getElementById("prod-promo-price").value = "";
     document.getElementById("prod-out-of-stock").checked = false;
@@ -672,7 +669,7 @@ window.openProductModal = function(productId = null) {
   }
   window.togglePromoInput();
   renderImagePreviews();
-  modal.classList.add("open");
+  if (modal) modal.classList.add("open");
 };
 
 window.closeProductModal = () => document.getElementById("admin-modal")?.classList.remove("open");

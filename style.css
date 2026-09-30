@@ -1528,9 +1528,6 @@ body {
 /* AJUSTES PARA O MODAL DA RECEITA VIRAR UMA FOLHA A4 NO DESKTOP */
 @media (min-width: 769px) {
   #recipe-a4-sheet {
-    width: 210mm; /* Padrão de largura A4 */
-    max-width: 95vw;
-    min-height: 297mm; /* Padrão de altura A4 */
     margin: 2rem auto !important;
     padding: 3rem; 
     background-color: #fffdf8; 
