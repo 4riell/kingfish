@@ -715,7 +715,6 @@ window.handleRecipeVideoFileSelect = function(event) {
 
 window.openRecipeModal = function() {
   document.getElementById("recipe-id-input").value = "";
-  document.getElementById("recipe-modal-title").innerText = "Adicionar Receita";
   document.getElementById("recipe-form").reset();
   currentRecipeImages = [];
   currentRecipeVideo = null;
@@ -739,7 +738,6 @@ window.editRecipe = function(recipeId) {
   populateRecipeProductSelect(category);
 
   document.getElementById("recipe-id-input").value = recipe.id;
-  document.getElementById("recipe-modal-title").innerText = "Editar Receita";
   document.getElementById("recipe-title").value = recipe.title || "";
   document.getElementById("recipe-desc-input").value = recipe.description || "";
   document.getElementById("recipe-prod-select").value = recipe.relatedProduct || "";
