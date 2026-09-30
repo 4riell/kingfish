@@ -39,7 +39,7 @@ setPersistence(auth, browserLocalPersistence).catch((error) => {
 let cart = [];
 let allProducts = [];
 let allRecipes = [];
-let allRecipeCategories = [];
+let allCategories = [];
 let currentCategory = "todos";
 let currentRecipeCategory = "todos";
 let isAdminLoggedIn = false;
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupRecipeDragAndDrop();
   loadProducts();
   loadRecipes();
-  loadRecipeCategories();
+  loadCategories(); // <--- AQUI
 });
 
 // FUNÇÃO DE ZOOM PARA IMAGENS
@@ -91,6 +91,96 @@ window.setupImageZoom = function(imgElement) {
     imgElement.style.transformOrigin = "center center";
     imgElement.style.transform = "scale(1)";
   });
+};
+
+function renderCategories() {
+  const catalogFilters = document.getElementById("catalog-filters");
+  const recipeFilters = document.getElementById("recipe-filters");
+  const selectProd = document.getElementById("prod-category");
+  const selectRecipe = document.getElementById("recipe-category");
+  const listContainer = document.getElementById("category-list");
+  
+  // 1. Lista na Modal do Admin
+  if (listContainer) {
+    listContainer.innerHTML = "";
+    allCategories.forEach(cat => {
+      listContainer.innerHTML += `
+        <li style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; align-items:center;">
+          <strong>${cat.name}</strong>
+          <button onclick="deleteCategory('${cat.id}')" style="color:#e74c3c; background:none; border:none; cursor:pointer; font-size:1.1rem;"><i class="fa-solid fa-trash"></i></button>
+        </li>
+      `;
+    });
+  }
+
+  // 2. Filtros do Catálogo
+  if (catalogFilters) {
+    catalogFilters.innerHTML = `
+      <button class="filter-btn active" onclick="filterCategory('todos')">Todos</button>
+      <button class="filter-btn" onclick="filterCategory('promocoes')"><i class="fa-solid fa-tag"></i> Promoções</button>
+    `;
+    allCategories.forEach(cat => {
+      catalogFilters.innerHTML += `<button class="filter-btn" onclick="filterCategory('${cat.name}')">${cat.name}</button>`;
+    });
+  }
+
+  // 3. Filtros de Receitas
+  if (recipeFilters) {
+    recipeFilters.innerHTML = `<button class="filter-btn active" onclick="filterRecipeCategory('todos')">Todas</button>`;
+    allCategories.forEach(cat => {
+      recipeFilters.innerHTML += `<button class="filter-btn" onclick="filterRecipeCategory('${cat.name}')">${cat.name}</button>`;
+    });
+  }
+
+  // 4. Selects de Formulários (Produto e Receita)
+  const currentProdVal = selectProd ? selectProd.value : "";
+  const currentRecipeVal = selectRecipe ? selectRecipe.value : "";
+  
+  let optionsHTML = `<option value="">Selecione...</option>`;
+  allCategories.forEach(cat => {
+    optionsHTML += `<option value="${cat.name}">${cat.name}</option>`;
+  });
+
+  if (selectProd) {
+    selectProd.innerHTML = optionsHTML;
+    if (currentProdVal) selectProd.value = currentProdVal;
+  }
+  if (selectRecipe) {
+    selectRecipe.innerHTML = optionsHTML;
+    if (currentRecipeVal) selectRecipe.value = currentRecipeVal;
+  }
+}
+
+function loadCategories() {
+  const catRef = collection(db, "categories"); // Nova coleção unificada
+  onSnapshot(catRef, (snapshot) => {
+    allCategories = [];
+    snapshot.forEach(doc => {
+      allCategories.push({ id: doc.id, ...doc.data() });
+    });
+    renderCategories();
+  });
+}
+
+window.addCategory = async function() {
+  const input = document.getElementById("new-category-name");
+  const name = input.value.trim();
+  if (!name) return;
+  try {
+    await addDoc(collection(db, "categories"), { name: name });
+    input.value = "";
+  } catch (error) {
+    alert("Erro ao adicionar categoria: " + error.message);
+  }
+};
+
+window.deleteCategory = async function(id) {
+  if (!confirm("Tem certeza que deseja excluir esta categoria?")) return;
+  try {
+    await deleteDoc(doc(db, "categories", id));
+  } catch (error) {
+    alert("Erro ao excluir: " + error.message);
+  }
 };
 
 function checkAdminRouteAccess() {
@@ -727,7 +817,8 @@ window.openRecipeDetailModal = function(recipeId) {
 
   const videoContainer = document.getElementById("modal-recipe-video-container");
   if (recipe.video) {
-    videoContainer.innerHTML = `<video controls src="${recipe.video}" style="width:100%; max-height:400px; border-radius:8px; object-fit:cover; background:#000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></video>`;
+    // max-height alterado de 400px para 220px e object-fit para contain
+    videoContainer.innerHTML = `<video controls src="${recipe.video}" style="width:100%; max-height:220px; border-radius:8px; object-fit:contain; background:#000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></video>`;
     videoContainer.style.display = "block";
   } else {
     videoContainer.innerHTML = "";
@@ -744,17 +835,19 @@ window.openRecipeDetailModal = function(recipeId) {
   let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : []);
   
   if (imagesList.length > 0) {
-    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit:cover;">`;
+    // max-height inserido (220px) e object-fit:contain
+    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; max-height: 220px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit:contain; background:#f8fafc;">`;
     media1.style.display = "block";
-    setupImageZoom(media1.querySelector('img')); // Aplica o zoom!
+    setupImageZoom(media1.querySelector('img'));
   } else {
     media1.style.display = "none";
   }
 
   if (imagesList.length > 1) {
-    media2.innerHTML = `<img src="${imagesList[imagesList.length - 1]}" alt="Prato Finalizado" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit:cover;">`;
+    // max-height inserido (220px) e object-fit:contain
+    media2.innerHTML = `<img src="${imagesList[imagesList.length - 1]}" alt="Prato Finalizado" style="width: 100%; max-height: 220px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit:contain; background:#f8fafc;">`;
     media2.style.display = "block";
-    setupImageZoom(media2.querySelector('img')); // Aplica o zoom!
+    setupImageZoom(media2.querySelector('img'));
   } else {
     media2.style.display = "none";
   }
