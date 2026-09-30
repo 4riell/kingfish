@@ -18,13 +18,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCFCl3E2bnDc6iHHsfyctXPPCPOJ_zdm34",
-  authDomain: "kingfish-pescados.firebaseapp.com",
-  projectId: "kingfish-pescados",
-  storageBucket: "kingfish-pescados.firebasestorage.app",
-  messagingSenderId: "1004059536924",
-  appId: "1:1004059536924:web:75dfdf348728a0634df9d9",
-  measurementId: "G-7QZZ64PSS2"
+  apiKey: "AIzaSyD4dEBSPXtMP8eMf8IhwvISaumUCuTnR9o",
+  authDomain: "pescadoscaparao.firebaseapp.com",
+  projectId: "pescadoscaparao",
+  storageBucket: "pescadoscaparao.firebasestorage.app",
+  messagingSenderId: "935622122822",
+  appId: "1:935622122822:web:ca67b6ed4759573bd89947",
+  measurementId: "G-DTWKYV6E4G"
 };
 
 const app = initializeApp(firebaseConfig);
