@@ -29,10 +29,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const initialProducts = [
-  { id: "1", name: "FILÉ DE TILÁPIA", category: "peixes", price: 45.00, unit: "Kg", images: ["https://via.placeholder.com/300x200?text=Tilapia+1"], desc: "Sem espinho, congelado", isOutOfStock: false }
-];
-
 let cart = [];
 let allProducts = [];
 let currentCategory = "todos";
@@ -106,7 +102,7 @@ window.closeLoginModal = function() {
 function loadProducts() {
   const productsRef = collection(db, "products");
 
-  onSnapshot(productsRef, async (snapshot) => {
+  onSnapshot(productsRef, (snapshot) => {
     allProducts = [];
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -116,15 +112,8 @@ function loadProducts() {
       allProducts.push({ id: docSnap.id, ...data });
     });
 
-    // Se o banco estiver totalmente vazio e houver um admin logado, cadastra os itens de teste no Firestore
-    if (allProducts.length === 0 && auth.currentUser) {
-      for (const p of initialProducts) {
-        const { id, ...prodWithoutId } = p;
-        await addDoc(productsRef, prodWithoutId);
-      }
-    } else {
-      renderProducts(allProducts);
-    }
+    // Renderiza diretamente os produtos cadastrados no Firestore
+    renderProducts(allProducts);
   }, (error) => {
     console.error("Erro ao carregar produtos:", error);
   });
