@@ -796,7 +796,8 @@ window.sendOrderToWhatsApp = function() {
 
   const deliveryType = document.getElementById("checkout-type")?.value;
   let deliveryDetails = "";
-  let taxaDelivery = 0;
+  // Taxa fixa de entrega de R$ 5,00
+  const taxaDelivery = 5.00;
 
   if (deliveryType === "entrega") {
     const cep = document.getElementById("checkout-cep")?.value.trim();
@@ -806,10 +807,10 @@ window.sendOrderToWhatsApp = function() {
     const numero = document.getElementById("checkout-numero")?.value.trim();
     const complemento = document.getElementById("checkout-complemento")?.value.trim();
     const referencia = document.getElementById("checkout-referencia")?.value.trim();
-    taxaDelivery = parseFloat(document.getElementById("checkout-taxa")?.value) || 0;
 
-    if (!cep || !cidade || !rua || !numero) {
-      alert("Por favor, preencha os campos obrigatórios de endereço (CEP, Cidade, Rua e Número).");
+    // Validação dos campos obrigatórios de entrega (apenas complemento é opcional)
+    if (!cep || !cidade || !bairro || !rua || !numero || !referencia) {
+      alert("Por favor, preencha todos os campos obrigatórios de entrega (apenas o Complemento é opcional).");
       return;
     }
 
@@ -817,10 +818,10 @@ window.sendOrderToWhatsApp = function() {
 *Tipo:* Entrega
 *CEP:* ${cep}
 *Cidade:* ${cidade}
-*Bairro:* ${bairro || "Não informado"}
+*Bairro:* ${bairro}
 *Rua:* ${rua}, Nº ${numero}
 *Complemento:* ${complemento || "Nenhum"}
-*Ponto de Referência:* ${referencia || "Nenhum"}`;
+*Ponto de Referência:* ${referencia}`;
   } else {
     deliveryDetails = `\n*Tipo:* Retirada no Balcão`;
   }
@@ -828,6 +829,18 @@ window.sendOrderToWhatsApp = function() {
   const pagamento = document.getElementById("checkout-pagamento")?.value.toUpperCase();
   const troco = document.getElementById("checkout-troco")?.value.trim();
   const obs = document.getElementById("checkout-obs")?.value.trim();
+
+  // Validação do campo de pagamento
+  if (!pagamento) {
+    alert("Por favor, selecione a forma de pagamento.");
+    return;
+  }
+
+  // Se for dinheiro, exige a informação do troco ou confirmação
+  if (pagamento === "DINHEIRO" && !troco) {
+    alert("Por favor, informe se precisa de troco (ou digite 'Não precisa').");
+    return;
+  }
 
   let message = "*NOVO PEDIDO - PESCADOS CAPARAÓ*\n\n*ITENS DO PEDIDO:*\n";
   let itemsTotal = 0;
@@ -851,16 +864,17 @@ window.sendOrderToWhatsApp = function() {
   message += `\n\n*PAGAMENTO:*`;
   message += `\n*Forma:* ${pagamento}`;
   if (pagamento === "DINHEIRO" && troco) {
-    message += `\n*Troco para:* R$ ${troco}`;
+    message += `\n*Troco para:* ${troco}`;
   }
 
+  // Observação é opcional
   if (obs) {
     message += `\n\n*OBSERVAÇÕES:*\n${obs}`;
   }
 
-  const phoneNumbers = ["5528999868639"];
+  const phoneNumber = "5528999868639";
   const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/${phoneNumbers[0]}?text=${encodedMessage}`;
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
   
   window.open(whatsappUrl, "_blank");
 };
@@ -887,31 +901,6 @@ window.toggleCart = function(forceOpen = false) {
     sidebar.classList.remove("open");
     overlay.classList.remove("open");
   }
-};
-
-window.sendOrderToWhatsApp = function() {
-  if (cart.length === 0) {
-    alert("Seu carrinho está vazio!");
-    return;
-  }
-
-  const phoneNumbers = ["5528999868639"];
-  let message = "*NOVO PEDIDO - PESCADOS CAPARAÓ*\n\n";
-
-  let total = 0;
-  cart.forEach(item => {
-    const subtotal = item.price * item.quantity;
-    total += subtotal;
-    message += `• *${item.name}*\n  Qtd/Peso: ${item.quantity} ${item.unit} | R$ ${subtotal.toFixed(2)}\n`;
-  });
-
-  message += `\n*Total Estimado:* R$ ${total.toFixed(2)}`;
-  message += `\n\n_Por favor, informe seu endereço e a forma de pagamento no chat._`;
-
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/${phoneNumbers[0]}?text=${encodedMessage}`;
-  
-  window.open(whatsappUrl, "_blank");
 };
 
 window.toggleMobileMenu = function() {
