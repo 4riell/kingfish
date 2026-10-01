@@ -358,121 +358,128 @@
     </div>
   </div>
 
-  <!-- MODAL DE CADASTRO DE RECEITAS -->
-<div class="modal-overlay" id="recipe-modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <button class="close-modal-btn" onclick="closeRecipeModal()">&times;</button>
-    </div>
-    
-    <form id="recipe-form" onsubmit="handleRecipeSubmit(event)">
-      <input type="hidden" id="recipe-id-input" value="">
-
-      <div class="form-group">
-        <label for="recipe-title">Título da Receita:</label>
-        <input type="text" id="recipe-title" required placeholder="Ex: Bacalhau à Brás">
+  <!-- MODAL DE CADASTRO E EDIÇÃO DE PRODUTO -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="product-modal-title" style="font-size: 1.2rem;">Gerenciar Produto</h2>
+        <button class="close-modal-btn" onclick="closeProductModal()">&times;</button>
       </div>
+      
+      <form id="product-form" onsubmit="handleProductSubmit(event)">
+        <input type="hidden" id="prod-id">
 
-      <div class="form-group">
-        <label for="recipe-desc-input">Descrição da Receita (Resumo do prato):</label>
-        <textarea id="recipe-desc-input" rows="2" placeholder="Ex: Um prato delicioso e tradicional ideal para a família..."></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="recipe-category">Categoria da Receita:</label>
-        <select id="recipe-category" required onchange="populateRecipeProductSelect(this.value)">
-          <option value="">Selecione...</option>
-          <!-- Options geradas dinamicamente via JS -->
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="recipe-prod-select">Produto Relacionado:</label>
-        <select id="recipe-prod-select">
-          <option value="">Nenhum produto associado</option>
-          <!-- Opções carregadas dinamicamente via JS -->
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="recipe-ingredients">Ingredientes:</label>
-        <textarea id="recipe-ingredients" rows="4" placeholder="Ex: - 500g de bacalhau..."></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="recipe-instructions">Modo de Preparo:</label>
-        <textarea id="recipe-instructions" rows="4" placeholder="Ex: 1. Refogue a cebola e o alho..."></textarea>
-      </div>
-
-      <!-- SEPARADO: UPLOAD DE VÍDEO -->
-      <div class="form-group">
-        <label>Vídeo da Receita (Opcional):</label>
-        <div class="drop-zone" onclick="document.getElementById('recipe-video-input').click()">
-          <i class="fa-solid fa-video drop-zone-icon"></i>
-          <p><strong>Clique para buscar</strong> ou arraste o vídeo aqui</p>
-          <input type="file" id="recipe-video-input" accept="video/*" style="display: none;" onchange="handleRecipeVideoFileSelect(event)">
+        <div class="form-group">
+          <label>Nome do Produto:</label>
+          <input type="text" id="prod-name" placeholder="Ex: Filé de Tilápia" required>
         </div>
-        <div class="images-preview-container" id="recipe-video-preview"></div>
-      </div>
 
-      <!-- SEPARADO: UPLOAD DE IMAGENS -->
-      <div class="form-group">
-        <label>Fotos do Prato (Recomendado 2 fotos):</label>
-        <div class="drop-zone" id="recipe-drop-zone" onclick="document.getElementById('recipe-images-input').click()">
-          <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
-          <p><strong>Clique para buscar</strong> ou arraste as fotos da receita aqui</p>
-          <input type="file" id="recipe-images-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImageFileSelect(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Categoria:</label>
+            <select id="prod-category" required>
+              <option value="">Selecione a categoria...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Preço Normal (R$):</label>
+            <input type="number" step="0.01" id="prod-price" placeholder="0.00" required>
+          </div>
         </div>
-        <div class="images-preview-container" id="recipe-images-preview"></div>
-      </div>
 
-      <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
-        <button type="button" class="btn-cancel" onclick="closeRecipeModal()" style="flex:1; padding:10px; border-radius:6px; background:#e74c3c; color:white; border:none; cursor:pointer; font-weight:bold;">Cancelar</button>
-        <button type="submit" class="btn-save" id="btn-save-recipe" style="flex:1; padding:10px; border-radius:6px; background:var(--primary-blue); color:white; border:none; cursor:pointer; font-weight:bold;">Salvar Receita</button>
-      </div>
-    </form>
-  </div>
-</div>
+        <div class="form-row" id="promo-price-row" style="display: none;">
+          <div class="form-group">
+            <label>Preço em Promoção (R$):</label>
+            <input type="number" step="0.01" id="prod-promo-price" placeholder="0.00">
+          </div>
+        </div>
 
-<!-- MODAL DE DETALHES DA RECEITA -->
-<div class="modal-overlay" id="recipe-detail-modal">
-  <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet">
-    <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
-      <h2 id="modal-recipe-title" class="recipe-sheet-title" style="text-align: center; width: 100%;"></h2>
-      <button class="close-modal-btn" onclick="closeRecipeDetailModal()" style="position: absolute; right: 0; top: 0;">&times;</button>
-    </div>
-    
-    <div class="modal-detail-body recipe-sheet-content">
-      <!-- VÍDEO -->
-      <div id="modal-recipe-video-container" style="margin-bottom: 15px; width: 100%;"></div>
-      
-      <!-- DESCRIÇÃO -->
-      <p id="modal-recipe-desc" class="recipe-sheet-desc" style="text-align: center; font-size: 1.1rem; margin-bottom: 20px;"></p>
-      
-      <div style="text-align: center;">
-        <div id="modal-recipe-tag"></div>
-      </div>
+        <div class="form-group checkbox-group">
+          <label for="prod-on-sale" class="checkbox-label" style="margin-right: 15px;">
+            <input type="checkbox" id="prod-on-sale" onchange="togglePromoInput()">
+            <span>Colocar produto em <strong>Promoção</strong></span>
+          </label>
 
-      <!-- PRIMEIRA IMAGEM -->
-      <div class="modal-detail-media recipe-sheet-media" id="modal-recipe-media-1" style="margin-top: 15px; overflow:hidden;"></div>
-      
-      <!-- INGREDIENTES -->
-      <div style="margin-top: 20px;">
-        <h3>Ingredientes:</h3>
-        <p id="modal-recipe-ingredients" class="modal-desc"></p>
-      </div>
+          <label for="prod-out-of-stock" class="checkbox-label">
+            <input type="checkbox" id="prod-out-of-stock">
+            <span>Marcar produto como <strong>Esgotado</strong></span>
+          </label>
+        </div>
 
-      <!-- MODO DE PREPARO -->
-      <div style="margin-top: 20px;">
-        <h3>Modo de Preparo:</h3>
-        <p id="modal-recipe-instructions" class="modal-desc"></p>
-      </div>
+        <div class="form-group">
+          <label>Tipo de Unidade / Embalagem:</label>
+          <select id="prod-unit">
+            <option value="Kg">Por Kg (Peso Fracionado)</option>
+            <option value="500g">Pacote 500g</option>
+            <option value="Pct 1Kg">Pacote 1Kg</option>
+            <option value="Unidade">Unidade</option>
+          </select>
+        </div>
 
-      <!-- SEGUNDA IMAGEM -->
-      <div class="modal-detail-media recipe-sheet-final" id="modal-recipe-media-2" style="margin-top: 30px; overflow:hidden;"></div>
+        <div class="form-group">
+          <label>Imagens do Produto:</label>
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('prod-images-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+            <p><strong>Clique para buscar</strong> ou arraste e solte as fotos aqui</p>
+            <input type="file" id="prod-images-input" accept="image/*" multiple style="display: none;" onchange="handleImageFileSelect(event)">
+          </div>
+          <div class="images-preview-container" id="images-preview"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Descrição:</label>
+          <textarea id="prod-desc" placeholder="Ex: Filé sem espinho, congelado individualmente..." rows="2"></textarea>
+        </div>
+
+        <!-- BOTÕES DE AÇÃO FIXOS NO RODAPÉ DO FORMULÁRIO -->
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeProductModal()" style="flex:1; padding:10px; border-radius:6px; background:#e74c3c; color:white; border:none; cursor:pointer; font-weight:bold;">Cancelar</button>
+          <button type="submit" class="btn-save" id="btn-save-product" style="flex:1; padding:10px; border-radius:6px; background:var(--primary-blue); color:white; border:none; cursor:pointer; font-weight:bold;">Salvar Produto</button>
+        </div>
+      </form>
     </div>
   </div>
-</div>
+
+  <!-- MODAL DE DETALHES DA RECEITA -->
+  <div class="modal-overlay" id="recipe-detail-modal">
+    <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet">
+      <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
+        <h2 id="modal-recipe-title" class="recipe-sheet-title" style="text-align: center; width: 100%;"></h2>
+        <button class="close-modal-btn" onclick="closeRecipeDetailModal()" style="position: absolute; right: 0; top: 0;">&times;</button>
+      </div>
+      
+      <div class="modal-detail-body recipe-sheet-content">
+        <!-- VÍDEO -->
+        <div id="modal-recipe-video-container" style="margin-bottom: 15px; width: 100%;"></div>
+        
+        <!-- DESCRIÇÃO -->
+        <p id="modal-recipe-desc" class="recipe-sheet-desc" style="text-align: center; font-size: 1.1rem; margin-bottom: 20px;"></p>
+        
+        <div style="text-align: center;">
+          <div id="modal-recipe-tag"></div>
+        </div>
+
+        <!-- PRIMEIRA IMAGEM -->
+        <div class="modal-detail-media recipe-sheet-media" id="modal-recipe-media-1" style="margin-top: 15px; overflow:hidden;"></div>
+        
+        <!-- INGREDIENTES -->
+        <div style="margin-top: 20px;">
+          <h3>Ingredientes:</h3>
+          <p id="modal-recipe-ingredients" class="modal-desc"></p>
+        </div>
+
+        <!-- MODO DE PREPARO -->
+        <div style="margin-top: 20px;">
+          <h3>Modo de Preparo:</h3>
+          <p id="modal-recipe-instructions" class="modal-desc"></p>
+        </div>
+
+        <!-- SEGUNDA IMAGEM -->
+        <div class="modal-detail-media recipe-sheet-final" id="modal-recipe-media-2" style="margin-top: 30px; overflow:hidden;"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL DE DETALHES DO PRODUTO -->
   <div class="modal-overlay" id="product-detail-modal">
