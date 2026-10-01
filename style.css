@@ -395,6 +395,7 @@ body {
   position: relative;
   margin-top: auto; 
   width: 100%;
+  height: 100%;
 }
 
 .product-card:hover {
@@ -430,19 +431,14 @@ body {
   font-size: 0.85rem;
   color: #666;
   margin-bottom: 10px;
-  
-  /* Propriedade padrão moderna */
   line-clamp: 3;
-  
-  /* Fallback necessário para garantir o funcionamento em múltiplos navegadores */
   display: block;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  
-  /* Essencial para cortar o texto excedente e adicionar reticências (...) */
   overflow: hidden;
   text-overflow: ellipsis;
+  height: stretch;
 }
 
 .price-container {
@@ -456,6 +452,7 @@ body {
   font-size: 1.25rem;
   font-weight: bold;
   color: #2c3e50;
+  height: stretch;
 }
 
 .product-price.promo {
@@ -480,6 +477,8 @@ body {
   transition: background 0.2s;
   position: relative;
   z-index: 10;
+  margin-top: auto; 
+  width: 100%;
 }
 
 .add-cart-btn:hover {
