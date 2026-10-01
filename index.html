@@ -365,7 +365,7 @@
   <div class="modal-overlay" id="recipe-modal">
     <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <p id="modal-recipe-form-title"></p>
+        <h2 id="modal-recipe-form-title">Cadastrar / Editar Receita</h2>
         <button class="close-modal-btn" onclick="closeRecipeModal()">&times;</button>
       </div>
       
@@ -391,24 +391,32 @@
           </select>
         </div>
 
-        <!-- 1ª FOTO DO PRATO (ANTES DA DESCRIÇÃO) -->
+        <!-- 1. FOTOS ANTES DA DESCRIÇÃO (COM CARROSSEL) -->
         <div class="form-group">
-          <label>Foto Inicial do Prato (Antes da Descrição):</label>
-          <div class="drop-zone" id="recipe-drop-zone" onclick="document.getElementById('recipe-images-input').click()">
+          <label>Fotos (Antes da Descrição):</label>
+          <div class="drop-zone" onclick="document.getElementById('recipe-images-1-input').click()">
             <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
-            <p><strong>Clique para buscar</strong> ou arraste a foto aqui</p>
-            <input type="file" id="recipe-images-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImageFileSelect(event)">
+            <p><strong>Clique para buscar</strong> ou arraste as fotos aqui</p>
+            <input type="file" id="recipe-images-1-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImages1Select(event)">
           </div>
-          <div class="images-preview-container" id="recipe-images-preview"></div>
+          <div class="images-preview-container" id="recipe-images-1-preview"></div>
         </div>
 
         <div class="form-group">
           <label for="recipe-desc-input">Descrição da Receita (Resumo do prato):</label>
-          <textarea id="recipe-desc-input" rows="2" placeholder="Ex: Um prato delicioso e tradicional ideal para a família..."></textarea>
+          <textarea id="recipe-desc-input" rows="2" placeholder="Ex: Um prato delicioso..."></textarea>
         </div>
 
-        <!-- SEGUNDA FOTO (ANTES DOS INGREDIENTES) - Caso queira separar ou usar a mesma lista de imagens controlada por índice -->
-        <!-- Opcional: Se preferir gerenciar fotos adicionais, você pode adaptá-las, mas mantendo a ordem visual abaixo: -->
+        <!-- 2. FOTOS ANTES DOS INGREDIENTES/PREPARO (COM CARROSSEL) -->
+        <div class="form-group">
+          <label>Fotos (Antes dos Ingredientes / Modo de Preparo):</label>
+          <div class="drop-zone" onclick="document.getElementById('recipe-images-2-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+            <p><strong>Clique para buscar</strong> ou arraste as fotos aqui</p>
+            <input type="file" id="recipe-images-2-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImages2Select(event)">
+          </div>
+          <div class="images-preview-container" id="recipe-images-2-preview"></div>
+        </div>
 
         <div class="form-group">
           <label for="recipe-ingredients">Ingredientes:</label>
@@ -417,7 +425,7 @@
 
         <div class="form-group">
           <label for="recipe-instructions">Modo de Preparo:</label>
-          <textarea id="recipe-instructions" rows="4" placeholder="Ex: 1. Refogue a cebola e o alho..."></textarea>
+          <textarea id="recipe-instructions" rows="4" placeholder="Ex: 1. Refogue a cebola..."></textarea>
         </div>
 
         <!-- VÍDEO DA RECEITA (NO FIM) -->
@@ -432,9 +440,108 @@
         </div>
 
         <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
+          <button type="button" class="btn-cancel" onclick="closeRecipeModal()" style="flex:1; padding:10px; border-radius:6px; background:#e74c3c; color:white; border:none; cursor:pointer; font-weight:bold;">Cancelar</button>
           <button type="submit" class="btn-save" id="btn-save-recipe" style="flex:1; padding:10px; border-radius:6px; background:var(--primary-blue); color:white; border:none; cursor:pointer; font-weight:bold;">Salvar Receita</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALHES DA RECEITA (COM OS CARROSSEIS) -->
+  <div class="modal-overlay" id="recipe-detail-modal">
+    <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet" style="max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
+        <h2 id="modal-recipe-title" class="recipe-sheet-title" style="text-align: center; width: 100%;"></h2>
+        <button class="close-modal-btn" onclick="closeRecipeDetailModal()" style="position: absolute; right: 0; top: 0;">&times;</button>
+      </div>
+      
+      <div class="modal-detail-body recipe-sheet-content">
+        
+        <!-- 1. CARROSSEL ANTES DA DESCRIÇÃO -->
+        <div id="recipe-carousel-1" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 15px; text-align:center;">
+          <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
+            <div id="carousel-images-1" style="display:flex; transition:transform 0.3s ease;"></div>
+          </div>
+          <button onclick="moveCarousel('carousel-images-1', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10094;</button>
+          <button onclick="moveCarousel('carousel-images-1', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10095;</button>
+        </div>
+
+        <!-- DESCRIÇÃO -->
+        <p id="modal-recipe-desc" class="recipe-sheet-desc" style="text-align: center; font-size: 1.1rem; margin-bottom: 20px;"></p>
+        
+        <!-- 2. CARROSSEL ANTES DOS INGREDIENTES -->
+        <div id="recipe-carousel-2" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 20px; text-align:center;">
+          <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
+            <div id="carousel-images-2" style="display:flex; transition:transform 0.3s ease;"></div>
+          </div>
+          <button onclick="moveCarousel('carousel-images-2', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10094;</button>
+          <button onclick="moveCarousel('carousel-images-2', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10095;</button>
+        </div>
+
+        <!-- INGREDIENTES -->
+        <div style="margin-top: 20px;">
+          <h3>Ingredientes:</h3>
+          <p id="modal-recipe-ingredients" class="modal-desc"></p>
+        </div>
+
+        <!-- MODO DE PREPARO -->
+        <div style="margin-top: 20px;">
+          <h3>Modo de Preparo:</h3>
+          <p id="modal-recipe-instructions" class="modal-desc"></p>
+        </div>
+
+        <!-- VÍDEO DA RECEITA (NO FIM) -->
+        <div id="modal-recipe-video-container" style="margin-top: 20px; width: 100%; text-align:center;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALHES DA RECEITA (COM OS CARROSSEIS) -->
+  <div class="modal-overlay" id="recipe-detail-modal">
+    <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet" style="max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
+        <h2 id="modal-recipe-title" class="recipe-sheet-title" style="text-align: center; width: 100%;"></h2>
+        <button class="close-modal-btn" onclick="closeRecipeDetailModal()" style="position: absolute; right: 0; top: 0;">&times;</button>
+      </div>
+      
+      <div class="modal-detail-body recipe-sheet-content">
+        
+        <!-- 1. CARROSSEL ANTES DA DESCRIÇÃO -->
+        <div id="recipe-carousel-1" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 15px; text-align:center;">
+          <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
+            <div id="carousel-images-1" style="display:flex; transition:transform 0.3s ease;"></div>
+          </div>
+          <button onclick="moveCarousel('carousel-images-1', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10094;</button>
+          <button onclick="moveCarousel('carousel-images-1', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10095;</button>
+        </div>
+
+        <!-- DESCRIÇÃO -->
+        <p id="modal-recipe-desc" class="recipe-sheet-desc" style="text-align: center; font-size: 1.1rem; margin-bottom: 20px;"></p>
+        
+        <!-- 2. CARROSSEL ANTES DOS INGREDIENTES -->
+        <div id="recipe-carousel-2" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 20px; text-align:center;">
+          <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
+            <div id="carousel-images-2" style="display:flex; transition:transform 0.3s ease;"></div>
+          </div>
+          <button onclick="moveCarousel('carousel-images-2', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10094;</button>
+          <button onclick="moveCarousel('carousel-images-2', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10095;</button>
+        </div>
+
+        <!-- INGREDIENTES -->
+        <div style="margin-top: 20px;">
+          <h3>Ingredientes:</h3>
+          <p id="modal-recipe-ingredients" class="modal-desc"></p>
+        </div>
+
+        <!-- MODO DE PREPARO -->
+        <div style="margin-top: 20px;">
+          <h3>Modo de Preparo:</h3>
+          <p id="modal-recipe-instructions" class="modal-desc"></p>
+        </div>
+
+        <!-- VÍDEO DA RECEITA (NO FIM) -->
+        <div id="modal-recipe-video-container" style="margin-top: 20px; width: 100%; text-align:center;"></div>
+      </div>
     </div>
   </div>
 
