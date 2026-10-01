@@ -494,7 +494,6 @@ window.moveRecipeModalCarousel = function(trackId, direction) {
   track.dataset.index = currentIndex;
   track.style.transform = `translateX(-${currentIndex * 100}%)`;
   
-  // Atualiza pontos do carrossel se houver
   const parentContainer = track.closest('.recipe-carousel');
   if (parentContainer) {
     const dots = parentContainer.querySelectorAll(".carousel-dot");
@@ -843,13 +842,8 @@ window.openRecipeDetailModal = function(recipeId) {
       
     if (list1.length > 0) {
       list1.forEach(imgSrc => {
-        track1.innerHTML += `<img src="${imgSrc}" style="min-width:100%; width:100%; max-height:250px; object-fit:contain; border-radius:8px;">`;
+        track1.innerHTML += `<img src="${imgSrc}" style="min-width:100%; width:100%; max-height:250px; object-fit:cover; border-radius:8px;">`;
       });
-      
-      // Adiciona botões de navegação se houver mais de uma imagem
-      const hasMultiple = list1.length > 1;
-      const navContainer = carousel1.querySelector('.carousel-nav-buttons') || carousel1;
-      
       carousel1.style.display = 'block';
     } else {
       carousel1.style.display = 'none';
@@ -865,7 +859,7 @@ window.openRecipeDetailModal = function(recipeId) {
     descElement.style.display = "none";
   }
 
-  // 3. CARROSSEL 2 (Antes dos ingredientes e modo de preparo)
+  // 3. CARROSSEL 2 (Antes dos ingredientes)
   const carousel2 = document.getElementById('recipe-carousel-2');
   const track2 = document.getElementById('carousel-images-2');
   if (track2) {
@@ -878,7 +872,7 @@ window.openRecipeDetailModal = function(recipeId) {
       
     if (list2.length > 0) {
       list2.forEach(imgSrc => {
-        track2.innerHTML += `<img src="${imgSrc}" style="min-width:100%; width:100%; max-height:250px; object-fit:contain; border-radius:8px;">`;
+        track2.innerHTML += `<img src="${imgSrc}" style="min-width:100%; width:100%; max-height:250px; object-fit:cover; border-radius:8px;">`;
       });
       carousel2.style.display = 'block';
     } else {
@@ -886,11 +880,9 @@ window.openRecipeDetailModal = function(recipeId) {
     }
   }
 
-  // 4. INGREDIENTES E MODO DE PREPARO
   document.getElementById("modal-recipe-ingredients").innerHTML = recipe.ingredients ? recipe.ingredients.replace(/\n/g, '<br>') : "";
   document.getElementById("modal-recipe-instructions").innerHTML = recipe.instructions ? recipe.instructions.replace(/\n/g, '<br>') : "";
 
-  // 5. VÍDEO
   const videoContainer = document.getElementById("modal-recipe-video-container");
   if (recipe.video) {
     videoContainer.innerHTML = `<video controls src="${recipe.video}" style="width:100%; max-height:220px; border-radius:8px; object-fit:contain; background:#000;"></video>`;

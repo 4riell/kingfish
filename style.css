@@ -607,6 +607,7 @@ body {
   flex-direction: column;
   border: 1px solid #eef2f5;
   cursor: pointer;
+  height: 440px; /* Garante tamanho fixo independente do texto */
 }
 
 .recipe-img-wrapper {
@@ -627,6 +628,7 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  overflow: hidden; /* Evita que o conteúdo transborde o card */
 }
 
 .recipe-title {
@@ -653,7 +655,7 @@ body {
   color: #555;
   line-height: 1.4;
   display: -webkit-box;
-  line-clamp: 3;
+  line-clamp: 4; /* Limita a quantidade máxima de linhas visíveis */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
