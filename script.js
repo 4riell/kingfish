@@ -804,21 +804,30 @@ window.setRecipeModalCarouselSlide = function(trackId, index) {
 // ==========================================
 window.setupImageZoom = function(imgElement) {
   if (!imgElement) return;
-  imgElement.style.transition = "transform 0.15s ease-out";
-  imgElement.style.cursor = "zoom-in";
   
-  imgElement.addEventListener("mousemove", (e) => {
-    const rect = imgElement.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    imgElement.style.transformOrigin = `${x}% ${y}%`;
-    imgElement.style.transform = "scale(2.2)"; 
-  });
+  // Detecta se é um dispositivo primariamente touch ou móvel
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-  imgElement.addEventListener("mouseleave", () => {
-    imgElement.style.transformOrigin = "center center";
+  if (isTouchDevice) {
+    // Comportamento otimizado para celulares / touch
+    imgElement.style.transition = "transform 0.3s ease";
+    imgElement.style.cursor = "zoom-in";
+    
+    let isZoomed = false;
+    imgElement.addEventListener("click", () => {
+      isZoomed = !isZoomed;
+      if (isZoomed) {
+        imgElement.style.transform = "scale(2)";
+      } else {
+        imgElement.style.transform = "scale(1)";
+      }
+    });
+  } else {
+    // Em computadores (desktop), removemos o efeito incômodo de hover/mousemove
+    // Permitindo que o computador exiba a imagem normalmente sem zoom automático indesejado.
     imgElement.style.transform = "scale(1)";
-  });
+    imgElement.style.cursor = "default";
+  }
 };
 
 function compressImage(file, maxWidth = 800, quality = 0.7) {

@@ -911,10 +911,6 @@ body {
   cursor: zoom-in;
 }
 
-#modal-product-media .carousel-img:hover {
-  transform: scale(1.4);
-}
-
 /* ==========================================
    PAINEL ADMINISTRATIVO
    ========================================== */
@@ -1191,7 +1187,7 @@ body {
     position: absolute;
     top: 100%;
     right: 0;
-    width: 200px;
+    width: 100%;
     background: var(--dark-blue);
     flex-direction: column;
     padding: 12px 1rem;
