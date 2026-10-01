@@ -131,7 +131,6 @@ window.handleAdminLogin = async function(e) {
   try {
     await signInWithEmailAndPassword(auth, email, password);
     document.getElementById("login-modal")?.classList.remove("open");
-    alert("Login realizado com sucesso!");
   } catch (error) {
     console.error("Erro no login:", error);
     alert("E-mail ou senha inválidos.");
