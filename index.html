@@ -365,7 +365,7 @@
   <div class="modal-overlay" id="recipe-modal">
     <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <h2 id="modal-recipe-form-title">Cadastrar / Editar Receita</h2>
+        <h2 id="modal-recipe-form-title"></h2>
         <button class="close-modal-btn" onclick="closeRecipeModal()">&times;</button>
       </div>
       
@@ -426,17 +426,6 @@
         <div class="form-group">
           <label for="recipe-instructions">Modo de Preparo:</label>
           <textarea id="recipe-instructions" rows="4" placeholder="Ex: 1. Refogue a cebola..."></textarea>
-        </div>
-
-        <!-- VÍDEO DA RECEITA (NO FIM) -->
-        <div class="form-group">
-          <label>Vídeo da Receita (Opcional - No fim):</label>
-          <div class="drop-zone" onclick="document.getElementById('recipe-video-input').click()">
-            <i class="fa-solid fa-video drop-zone-icon"></i>
-            <p><strong>Clique para buscar</strong> ou arraste o vídeo aqui</p>
-            <input type="file" id="recipe-video-input" accept="video/*" style="display: none;" onchange="handleRecipeVideoFileSelect(event)">
-          </div>
-          <div class="images-preview-container" id="recipe-video-preview"></div>
         </div>
 
         <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
