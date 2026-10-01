@@ -485,13 +485,13 @@
         <div class="form-group">
           <label>Tipo de Pedido:</label>
           <select id="checkout-type" onchange="toggleDeliveryFields()">
-            <option value="entrega">Entrega (Taxa R$5,00)</option>
             <option value="retirada">Retirada no Balcão</option>
+            <option value="entrega">Entrega (Taxa R$5,00)</option>
           </select>
         </div>
 
         <!-- CAMPOS DE ENDEREÇO (EXIBIDOS PARA ENTREGA) -->
-        <div id="delivery-fields">
+        <div id="delivery-fields" style="display: none;">
           <div class="form-group">
             <label for="checkout-cep">CEP:</label>
             <input type="text" id="checkout-cep" placeholder="00000-000" maxlength="9" onblur="fetchAddressByCEP()">
