@@ -111,13 +111,29 @@ window.closeCategoryModal = () => document.getElementById("category-modal")?.cla
 window.openAboutModal = () => document.getElementById("about-modal")?.classList.add("open");
 window.closeAboutModal = () => document.getElementById("about-modal")?.classList.remove("open");
 
+// Variável para rastrear onde o clique começou (evita fechar ao arrastar de dentro para fora)
+let clickedInsideModal = false;
+
+document.addEventListener("mousedown", (event) => {
+  if (event.target.closest(".modal-content") || event.target.closest(".modal-dialog")) {
+    clickedInsideModal = true;
+  } else {
+    clickedInsideModal = false;
+  }
+});
+
 window.addEventListener("click", (event) => {
   const nav = document.getElementById("main-nav");
   const toggleBtn = document.getElementById("menu-toggle-btn");
   if (nav && nav.classList.contains("show") && !nav.contains(event.target) && (!toggleBtn || !toggleBtn.contains(event.target))) {
     nav.classList.remove("show");
   }
-  if (event.target.classList.contains("modal-overlay")) event.target.classList.remove("open");
+  
+  // Fecha apenas se clicou diretamente no fundo escuro E o clique não começou dentro do conteúdo da modal
+  if (event.target.classList.contains("modal-overlay") && !clickedInsideModal) {
+    event.target.classList.remove("open");
+  }
+  clickedInsideModal = false;
 });
 
 // ==========================================
@@ -799,6 +815,13 @@ window.setRecipeModalCarouselSlide = function(trackId, index) {
 // ==========================================
 window.setupImageZoom = function(imgElement) {
   if (!imgElement) return;
+  
+  // Desativa o zoom em dispositivos móveis/tácteis para evitar comportamentos inesperados
+  if (window.matchMedia("(pointer: coarse)").matches) {
+    imgElement.style.cursor = "default";
+    return;
+  }
+
   imgElement.style.transition = "transform 0.15s ease-out";
   imgElement.style.cursor = "zoom-in";
   
