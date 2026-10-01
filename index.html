@@ -278,82 +278,55 @@
     </div>
   </div>
 
-  <!-- MODAL DE CADASTRO E EDIÇÃO DE PRODUTO -->
-  <div class="modal-overlay" id="admin-modal">
-    <div class="modal-content">
+  <!-- MODAL DE CADASTRO/EDIÇÃO DE PRODUTOS -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <!-- Título removido daqui -->
+        <h2 id="modal-product-form-title">Cadastrar / Editar Produto</h2>
         <button class="close-modal-btn" onclick="closeProductModal()">&times;</button>
       </div>
       
       <form id="product-form" onsubmit="handleProductSubmit(event)">
-        <input type="hidden" id="prod-id">
+        <input type="hidden" id="product-id-input" value="">
 
         <div class="form-group">
-          <label>Nome do Produto:</label>
-          <input type="text" id="prod-name" placeholder="Ex: Filé de Tilápia" required>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Categoria:</label>
-            <select id="prod-category" required>
-              <option value="">Selecione a categoria...</option>
-              <!-- Options geradas dinamicamente via JS -->
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Preço Normal (R$):</label>
-            <input type="number" step="0.01" id="prod-price" placeholder="0.00" required>
-          </div>
-        </div>
-
-        <div class="form-row" id="promo-price-row" style="display: none;">
-          <div class="form-group">
-            <label>Preço em Promoção (R$):</label>
-            <input type="number" step="0.01" id="prod-promo-price" placeholder="0.00">
-          </div>
-        </div>
-
-        <div class="form-group checkbox-group">
-          <label for="prod-on-sale" class="checkbox-label" style="margin-right: 15px;">
-            <input type="checkbox" id="prod-on-sale" onchange="togglePromoInput()">
-            <span>Colocar produto em <strong>Promoção</strong></span>
-          </label>
-
-          <label for="prod-out-of-stock" class="checkbox-label">
-            <input type="checkbox" id="prod-out-of-stock">
-            <span>Marcar produto como <strong>Esgotado</strong></span>
-          </label>
+          <label for="product-name">Nome do Produto:</label>
+          <input type="text" id="product-name" required placeholder="Ex: Azeite de Oliva Extra Virgem">
         </div>
 
         <div class="form-group">
-          <label>Tipo de Unidade / Embalagem:</label>
-          <select id="prod-unit">
-            <option value="Kg">Por Kg (Peso Fracionado)</option>
-            <option value="500g">Pacote 500g</option>
-            <option value="Pct 1Kg">Pacote 1Kg</option>
-            <option value="Unidade">Unidade</option>
+          <label for="product-category">Categoria:</label>
+          <select id="product-category" required>
+            <option value="">Selecione...</option>
+            <!-- Opções geradas via script -->
           </select>
         </div>
 
         <div class="form-group">
-          <label>Imagens do Produto:</label>
-          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('prod-images-input').click()">
-            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
-            <p><strong>Clique para buscar</strong> ou arraste e solte as fotos aqui</p>
-            <input type="file" id="prod-images-input" accept="image/*" multiple style="display: none;" onchange="handleImageFileSelect(event)">
-          </div>
-          <div class="images-preview-container" id="images-preview"></div>
+          <label for="product-price">Preço (€):</label>
+          <input type="number" step="0.01" id="product-price" required placeholder="0.00">
         </div>
 
         <div class="form-group">
-          <label>Descrição:</label>
-          <textarea id="prod-desc" placeholder="Ex: Filé sem espinho, congelado individualmente..." rows="2"></textarea>
+          <label for="product-desc">Descrição do Produto:</label>
+          <textarea id="product-desc" rows="3" placeholder="Detalhes sobre o produto..."></textarea>
         </div>
 
-        <button type="submit" class="btn-primary" id="btn-save-product">Salvar Produto</button>
+        <div class="form-group">
+          <label>Imagem do Produto:</label>
+          <div class="drop-zone" onclick="document.getElementById('product-image-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+            <p><strong>Clique para buscar</strong> ou arraste a imagem aqui</p>
+            <input type="file" id="product-image-input" accept="image/*" style="display: none;" onchange="handleProductImageFileSelect(event)">
+          </div>
+          <div class="images-preview-container" id="product-image-preview"></div>
+        </div>
+
+        <!-- BOTÕES DE AÇÃO NO RODAPÉ -->
+        <div class="modal-footer" style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn-cancel" onclick="closeProductModal()" style="flex: 1; padding: 10px; border-radius: 6px; background: #e74c3c; color: white; border: none; cursor: pointer; font-weight: bold;">Cancelar</button>
+          <button type="submit" class="btn-save" id="btn-save-product" style="flex: 1; padding: 10px; border-radius: 6px; background: var(--primary-blue); color: white; border: none; cursor: pointer; font-weight: bold;">Salvar Produto</button>
+        </div>
       </form>
     </div>
   </div>
@@ -362,7 +335,7 @@
   <div class="modal-overlay" id="recipe-modal">
     <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <h2 id="modal-recipe-form-title">Cadastrar / Editar Receita</h2>
+        <p id="modal-recipe-form-title"></p>
         <button class="close-modal-btn" onclick="closeRecipeModal()">&times;</button>
       </div>
       
