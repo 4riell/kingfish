@@ -27,31 +27,6 @@ import {
   closeAuthModal 
 } from "./auth.js";
 
-// Inicializa a autenticação dos clientes passando as instâncias do Firebase
-setupClientAuth(app, db, auth);
-
-// Disponibiliza as funções no escopo global para os eventos onclick do HTML
-window.openAuthModal = openAuthModal;
-window.closeAuthModal = closeAuthModal;
-
-window.handleGoogleLogin = () => {
-  loginWithGoogle(auth, db);
-};
-
-window.handleEmailAuth = (e) => {
-  e.preventDefault();
-  const email = document.getElementById("client-email").value;
-  const password = document.getElementById("client-password").value;
-  loginWithEmail(auth, email, password);
-};
-
-window.handleEmailRegister = (e) => {
-  e.preventDefault();
-  const email = document.getElementById("client-email").value;
-  const password = document.getElementById("client-password").value;
-  registerWithEmail(auth, db, email, password);
-};
-
 // ==========================================
 // 1. CONFIGURAÇÃO DO FIREBASE E ESTADO GLOBAL
 // ==========================================
@@ -65,6 +40,7 @@ const firebaseConfig = {
   measurementId: "G-DTWKYV6E4G"
 };
 
+// Inicializa o Firebase PRIMEIRO
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -72,6 +48,9 @@ const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error("Erro na persistência de login:", error);
 });
+
+// DEPOIS, utilize as variáveis normalmente
+setupClientAuth(app, db, auth);
 
 let cart = [];
 let allProducts = [];
