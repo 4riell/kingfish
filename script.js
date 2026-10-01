@@ -49,8 +49,29 @@ setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error("Erro na persistência de login:", error);
 });
 
-// DEPOIS, utilize as variáveis normalmente
+// Configuração de autenticação do cliente
 setupClientAuth(app, db, auth);
+
+// Tornando as funções de autenticação do cliente acessíveis globalmente no escopo do HTML (window)
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+
+// Funções globais auxiliares para os formulários de login/cadastro do cliente no HTML
+window.handleGoogleLogin = () => loginWithGoogle(auth, db);
+
+window.handleEmailAuth = async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("client-email").value;
+  const password = document.getElementById("client-password").value;
+  await loginWithEmail(auth, email, password);
+};
+
+window.handleEmailRegister = async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("client-email").value;
+  const password = document.getElementById("client-password").value;
+  await registerWithEmail(auth, db, email, password);
+};
 
 let cart = [];
 let allProducts = [];
@@ -124,7 +145,6 @@ window.closeCategoryModal = () => document.getElementById("category-modal")?.cla
 window.openAboutModal = () => document.getElementById("about-modal")?.classList.add("open");
 window.closeAboutModal = () => document.getElementById("about-modal")?.classList.remove("open");
 
-// Variável para rastrear onde o clique começou (evita fechar ao arrastar de dentro para fora)
 let clickedInsideModal = false;
 
 document.addEventListener("mousedown", (event) => {
@@ -142,7 +162,6 @@ window.addEventListener("click", (event) => {
     nav.classList.remove("show");
   }
   
-  // Fecha apenas se clicou diretamente no fundo escuro E o clique não começou dentro do conteúdo da modal
   if (event.target.classList.contains("modal-overlay") && !clickedInsideModal) {
     event.target.classList.remove("open");
   }
@@ -814,7 +833,6 @@ window.setRecipeModalCarouselSlide = function(trackId, index) {
   track.dataset.index = index;
   track.style.transform = `translateX(-${index * 100}%)`;
   
-  // Atualiza os pontos (dots) se houverem
   const parentContainer = track.closest('.recipe-carousel');
   if (parentContainer) {
     parentContainer.querySelectorAll(".carousel-dot").forEach((dot, i) => {
@@ -829,7 +847,6 @@ window.setRecipeModalCarouselSlide = function(trackId, index) {
 window.setupImageZoom = function(imgElement) {
   if (!imgElement) return;
   
-  // Desativa o zoom em dispositivos móveis/tácteis para evitar comportamentos inesperados
   if (window.matchMedia("(pointer: coarse)").matches) {
     imgElement.style.cursor = "default";
     return;
