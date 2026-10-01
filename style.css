@@ -393,7 +393,7 @@ body {
   border: 1px solid #eef2f5;
   cursor: pointer;
   position: relative;
-  height: 420px;
+  height: 450px; /* Altura fixa garantida para evitar estouro */
 }
 
 .product-card:hover {
@@ -414,7 +414,7 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  overflow: hidden;
+  overflow: hidden; /* Garante que nada saia da caixa de informações */
 }
 
 .product-title {
@@ -429,9 +429,8 @@ body {
   font-size: 0.85rem;
   color: #666;
   margin-bottom: 10px;
-  flex-grow: 1;
   display: -webkit-box;
-  line-clamp: 3; /* Limita a 3 linhas visíveis (pode ajustar para 2 ou 4) */
+  line-clamp: 2; /* Limita a descrição a no máximo 2 ou 3 linhas */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -614,7 +613,7 @@ body {
   flex-direction: column;
   border: 1px solid #eef2f5;
   cursor: pointer;
-  height: 440px; /* Garante tamanho fixo independente do texto */
+  height: 460px; /* Altura fixa para manter o padrão do card */
 }
 
 .recipe-img-wrapper {
@@ -635,7 +634,7 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  overflow: hidden; /* Evita que o conteúdo transborde o card */
+  overflow: hidden; /* Evita que o texto ultrapasse a área inferior ou cubra a imagem */
 }
 
 .recipe-title {
@@ -662,9 +661,10 @@ body {
   color: #555;
   line-height: 1.4;
   display: -webkit-box;
-  line-clamp: 4; /* Limita a quantidade máxima de linhas visíveis */
+  line-clamp: 3; /* Limita as linhas da descrição da receita */
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-weight: bold;
   text-overflow: ellipsis;
 }
 
@@ -1352,7 +1352,7 @@ body {
   border-radius: 8px;
   padding: 6px 12px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: bold;
   color: #2d3748;
   display: inline-flex;
   align-items: center;
@@ -1367,6 +1367,7 @@ body {
   font-size: 0.9rem;
   color: #4a5568;
   padding: 4px 0;
+  font-weight: bold;
 }
 
 .schedule-row.closed {
