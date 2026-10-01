@@ -52,13 +52,11 @@
 
     <!-- BARRA DE AÇÕES DO ADMINISTRADOR -->
     <div id="admin-bar" class="admin-bar" style="display: none;">
-      <div class="admin-status">
-        <!-- <i class="fa-solid fa-user-shield"></i> Modo Administrador Ativo -->
-      </div>
+      <div class="admin-status"></div>
       <div class="admin-actions">
         <button class="btn-add-product" onclick="openProductModal()">Adicionar Produto</button>
         <button class="btn-add-product" onclick="openRecipeModal()">Adicionar Receita</button>
-        <button class="btn-add-product" onclick="openCategoryModal()"">Adicionar Categorias</button>
+        <button class="btn-add-product" onclick="openCategoryModal()">Adicionar Categorias</button>
         <button class="btn-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
@@ -69,16 +67,15 @@
         <div class="category-filter" id="catalog-filters">
           <button class="filter-btn active" onclick="filterCategory('todos')">Todos</button>
           <button class="filter-btn" onclick="filterCategory('promocoes')"><i class="fa-solid fa-tag"></i> Promoções</button>          
-          <!-- As categorias dinâmicas serão injetadas aqui -->
         </div>
       </div>
 
       <div class="products-grid" id="products-container"></div>
     </section>
     
+    <!-- SEÇÃO: RECEITAS -->
     <section id="sec-receitas" class="content-section">
       <div class="category-filter-wrapper">
-        <!-- FILTROS GERADOS DINAMICAMENTE PELO JS -->
         <div class="category-filter" id="recipe-filters">
           <button class="filter-btn active" onclick="filterRecipeCategory('todos')">Todas</button>
         </div>
@@ -94,7 +91,6 @@
         </div>
 
         <div class="modal-info-body">
-
           <!-- CARD 1: ENTREGA E PEDIDO -->
           <div class="info-card">
             <div class="info-card-header">
@@ -128,7 +124,6 @@
                 <span class="info-label">Instagram</span>
                 <a href="https://www.instagram.com/pescadoscaparao/" target="_blank" rel="noopener noreferrer" class="info-value-link">@pescadoscaparao</a>
               </div>
-              <!-- DENTRO DO CARD DE CONTATO NO MODAL: -->
               <div class="info-row-block">
                 <span class="info-label">Endereço</span>
                 <a href="https://www.google.com/maps/search/?api=1&query=Pescados+Capara%C3%B3+Av.+Ol%C3%ADvio+Corr%C3%AAia+Pedrosa,+130+-+Centro,+Alegre+-+ES" 
@@ -167,34 +162,13 @@
               <span>HORÁRIO DE FUNCIONAMENTO</span>
             </div>
             <div class="info-card-content">
-              <div class="schedule-row">
-                <span>Segunda-feira</span>
-                <strong>08:00 às 12:00</strong>
-              </div>
-              <div class="schedule-row">
-                <span>Terça-feira</span>
-                <strong>08:00 às 12:00</strong>
-              </div>
-              <div class="schedule-row">
-                <span>Quarta-feira</span>
-                <strong>08:00 às 12:00</strong>
-              </div>
-              <div class="schedule-row">
-                <span>Quinta-feira</span>
-                <strong>08:00 às 12:00</strong>
-              </div>
-              <div class="schedule-row">
-                <span>Sexta-feira</span>
-                <strong>08:00 às 12:00</strong>
-              </div>
-              <div class="schedule-row">
-                <span>Sábado</span>
-                <strong>08:00 às 12:00</strong>
-              </div>
-              <div class="schedule-row closed">
-                <span>Domingo</span>
-                <strong class="text-closed">Fechado</strong>
-              </div>
+              <div class="schedule-row"><span>Segunda-feira</span><strong>08:00 às 12:00</strong></div>
+              <div class="schedule-row"><span>Terça-feira</span><strong>08:00 às 12:00</strong></div>
+              <div class="schedule-row"><span>Quarta-feira</span><strong>08:00 às 12:00</strong></div>
+              <div class="schedule-row"><span>Quinta-feira</span><strong>08:00 às 12:00</strong></div>
+              <div class="schedule-row"><span>Sexta-feira</span><strong>08:00 às 12:00</strong></div>
+              <div class="schedule-row"><span>Sábado</span><strong>08:00 às 12:00</strong></div>
+              <div class="schedule-row closed"><span>Domingo</span><strong class="text-closed">Fechado</strong></div>
             </div>
           </div>
 
@@ -272,9 +246,7 @@
           <button class="btn-primary" style="width:auto;" onclick="addCategory()">Adicionar</button>
         </div>
       </div>
-      <ul id="category-list" style="list-style:none; padding:0; margin-top:15px;">
-        <!-- Lista carregada dinamicamente -->
-      </ul>
+      <ul id="category-list" style="list-style:none; padding:0; margin-top:15px;"></ul>
     </div>
   </div>
 
@@ -299,7 +271,6 @@
             <label>Categoria:</label>
             <select id="prod-category" required>
               <option value="">Selecione a categoria...</option>
-              <!-- Options geradas dinamicamente via JS -->
             </select>
           </div>
 
@@ -353,7 +324,6 @@
           <textarea id="prod-desc" placeholder="Ex: Filé sem espinho, congelado individualmente..." rows="2"></textarea>
         </div>
 
-        <!-- BOTÕES DE AÇÃO NO RODAPÉ -->
         <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
           <button type="submit" class="btn-save" id="btn-save-product" style="flex:1; padding:10px; border-radius:6px; background:var(--primary-blue); color:white; border:none; cursor:pointer; font-weight:bold;">Salvar Produto</button>
         </div>
@@ -391,7 +361,7 @@
           </select>
         </div>
 
-        <!-- 1. FOTOS ANTES DA DESCRIÇÃO (COM CARROSSEL) -->
+        <!-- 1. FOTOS ANTES DA DESCRIÇÃO -->
         <div class="form-group">
           <label>Fotos (Antes da Descrição):</label>
           <div class="drop-zone" onclick="document.getElementById('recipe-images-1-input').click()">
@@ -407,7 +377,7 @@
           <textarea id="recipe-desc-input" rows="2" placeholder="Ex: Um prato delicioso..."></textarea>
         </div>
 
-        <!-- 2. FOTOS ANTES DOS INGREDIENTES/PREPARO (COM CARROSSEL) -->
+        <!-- 2. FOTOS ANTES DOS INGREDIENTES/PREPARO -->
         <div class="form-group">
           <label>Fotos (Antes dos Ingredientes / Modo de Preparo):</label>
           <div class="drop-zone" onclick="document.getElementById('recipe-images-2-input').click()">
@@ -436,7 +406,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE DETALHES DA RECEITA (COM OS CARROSSEIS) -->
+  <!-- MODAL DE DETALHES DA RECEITA (CONSOLIDADO E ÚNICO) -->
   <div class="modal-overlay" id="recipe-detail-modal">
     <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
@@ -449,10 +419,11 @@
         <!-- 1. CARROSSEL ANTES DA DESCRIÇÃO -->
         <div id="recipe-carousel-1" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 15px; text-align:center;">
           <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
-            <div id="carousel-images-1" style="display:flex; transition:transform 0.3s ease;"></div>
+            <div id="carousel-images-1" data-index="0" style="display:flex; transition:transform 0.3s ease;"></div>
           </div>
-          <button onclick="moveCarousel('carousel-images-1', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10094;</button>
-          <button onclick="moveCarousel('carousel-images-1', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10095;</button>
+          <button type="button" class="carousel-btn prev" onclick="moveRecipeModalCarousel('carousel-images-1', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%; z-index:10;"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="carousel-btn next" onclick="moveRecipeModalCarousel('carousel-images-1', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%; z-index:10;"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="carousel-dots" id="carousel-dots-1" style="margin-top: 8px; display: flex; justify-content: center; gap: 5px;"></div>
         </div>
 
         <!-- DESCRIÇÃO -->
@@ -461,10 +432,11 @@
         <!-- 2. CARROSSEL ANTES DOS INGREDIENTES -->
         <div id="recipe-carousel-2" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 20px; text-align:center;">
           <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
-            <div id="carousel-images-2" style="display:flex; transition:transform 0.3s ease;"></div>
+            <div id="carousel-images-2" data-index="0" style="display:flex; transition:transform 0.3s ease;"></div>
           </div>
-          <button onclick="moveCarousel('carousel-images-2', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10094;</button>
-          <button onclick="moveCarousel('carousel-images-2', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10095;</button>
+          <button type="button" class="carousel-btn prev" onclick="moveRecipeModalCarousel('carousel-images-2', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%; z-index:10;"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="carousel-btn next" onclick="moveRecipeModalCarousel('carousel-images-2', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%; z-index:10;"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="carousel-dots" id="carousel-dots-2" style="margin-top: 8px; display: flex; justify-content: center; gap: 5px;"></div>
         </div>
 
         <!-- INGREDIENTES -->
@@ -479,97 +451,8 @@
           <p id="modal-recipe-instructions" class="modal-desc"></p>
         </div>
 
-        <!-- VÍDEO DA RECEITA (NO FIM) -->
+        <!-- VÍDEO DA RECEITA -->
         <div id="modal-recipe-video-container" style="margin-top: 20px; width: 100%; text-align:center;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE DETALHES DA RECEITA (COM OS CARROSSEIS) -->
-  <div class="modal-overlay" id="recipe-detail-modal">
-    <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet" style="max-height: 90vh; overflow-y: auto;">
-      <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
-        <h2 id="modal-recipe-title" class="recipe-sheet-title" style="text-align: center; width: 100%;"></h2>
-        <button class="close-modal-btn" onclick="closeRecipeDetailModal()" style="position: absolute; right: 0; top: 0;">&times;</button>
-      </div>
-      
-      <div class="modal-detail-body recipe-sheet-content">
-        
-        <!-- 1. CARROSSEL ANTES DA DESCRIÇÃO -->
-        <div id="recipe-carousel-1" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 15px; text-align:center;">
-          <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
-            <div id="carousel-images-1" style="display:flex; transition:transform 0.3s ease;"></div>
-          </div>
-          <button onclick="moveCarousel('carousel-images-1', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10094;</button>
-          <button onclick="moveCarousel('carousel-images-1', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10095;</button>
-        </div>
-
-        <!-- DESCRIÇÃO -->
-        <p id="modal-recipe-desc" class="recipe-sheet-desc" style="text-align: center; font-size: 1.1rem; margin-bottom: 20px;"></p>
-        
-        <!-- 2. CARROSSEL ANTES DOS INGREDIENTES -->
-        <div id="recipe-carousel-2" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 20px; text-align:center;">
-          <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
-            <div id="carousel-images-2" style="display:flex; transition:transform 0.3s ease;"></div>
-          </div>
-          <button onclick="moveCarousel('carousel-images-2', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10094;</button>
-          <button onclick="moveCarousel('carousel-images-2', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%;">&#10095;</button>
-        </div>
-
-        <!-- INGREDIENTES -->
-        <div style="margin-top: 20px;">
-          <h3>Ingredientes:</h3>
-          <p id="modal-recipe-ingredients" class="modal-desc"></p>
-        </div>
-
-        <!-- MODO DE PREPARO -->
-        <div style="margin-top: 20px;">
-          <h3>Modo de Preparo:</h3>
-          <p id="modal-recipe-instructions" class="modal-desc"></p>
-        </div>
-
-        <!-- VÍDEO DA RECEITA (NO FIM) -->
-        <div id="modal-recipe-video-container" style="margin-top: 20px; width: 100%; text-align:center;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE DETALHES DA RECEITA -->
-  <div class="modal-overlay" id="recipe-detail-modal">
-    <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet">
-      <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
-        <h2 id="modal-recipe-title" class="recipe-sheet-title" style="text-align: center; width: 100%;"></h2>
-        <button class="close-modal-btn" onclick="closeRecipeDetailModal()" style="position: absolute; right: 0; top: 0;">&times;</button>
-      </div>
-      
-      <div class="modal-detail-body recipe-sheet-content">
-        <!-- VÍDEO -->
-        <div id="modal-recipe-video-container" style="margin-bottom: 15px; width: 100%;"></div>
-        
-        <!-- DESCRIÇÃO -->
-        <p id="modal-recipe-desc" class="recipe-sheet-desc" style="text-align: center; font-size: 1.1rem; margin-bottom: 20px;"></p>
-        
-        <div style="text-align: center;">
-          <div id="modal-recipe-tag"></div>
-        </div>
-
-        <!-- PRIMEIRA IMAGEM -->
-        <div class="modal-detail-media recipe-sheet-media" id="modal-recipe-media-1" style="margin-top: 15px; overflow:hidden;"></div>
-        
-        <!-- INGREDIENTES -->
-        <div style="margin-top: 20px;">
-          <h3>Ingredientes:</h3>
-          <p id="modal-recipe-ingredients" class="modal-desc"></p>
-        </div>
-
-        <!-- MODO DE PREPARO -->
-        <div style="margin-top: 20px;">
-          <h3>Modo de Preparo:</h3>
-          <p id="modal-recipe-instructions" class="modal-desc"></p>
-        </div>
-
-        <!-- SEGUNDA IMAGEM -->
-        <div class="modal-detail-media recipe-sheet-final" id="modal-recipe-media-2" style="margin-top: 30px; overflow:hidden;"></div>
       </div>
     </div>
   </div>

@@ -772,30 +772,30 @@ window.moveRecipeModalCarousel = function(trackId, direction) {
   const track = document.getElementById(trackId);
   if (!track) return;
   const slides = track.children;
-  if (slides.length === 0) return;
+  const total = slides.length;
+  if (total <= 1) return;
   
   let currentIndex = parseInt(track.dataset.index || "0");
-  currentIndex = (currentIndex + direction + slides.length) % slides.length;
+  currentIndex = (currentIndex + direction + total) % total;
   
-  track.dataset.index = currentIndex;
-  track.style.transform = `translateX(-${currentIndex * 100}%)`;
-  
-  const parentContainer = track.closest('.recipe-carousel');
-  if (parentContainer) {
-    parentContainer.querySelectorAll(".carousel-dot").forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
-  }
+  window.setRecipeModalCarouselSlide(trackId, currentIndex);
 };
 
 window.setRecipeModalCarouselSlide = function(trackId, index) {
   const track = document.getElementById(trackId);
-  if (!track || index < 0 || index >= track.children.length) return;
+  if (!track) return;
+  const slides = track.children;
+  if (index < 0 || index >= slides.length) return;
   
   track.dataset.index = index;
   track.style.transform = `translateX(-${index * 100}%)`;
   
+  // Atualiza os pontos (dots) se houverem
   const parentContainer = track.closest('.recipe-carousel');
   if (parentContainer) {
-    parentContainer.querySelectorAll(".carousel-dot").forEach((dot, i) => dot.classList.toggle("active", i === index));
+    parentContainer.querySelectorAll(".carousel-dot").forEach((dot, i) => {
+      dot.classList.toggle("active", i === index);
+    });
   }
 };
 
