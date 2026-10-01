@@ -301,7 +301,7 @@ function renderProducts(products) {
     ` : '';
 
     let adminControls = isAdminLoggedIn ? `
-      <div class="admin-card-actions" style="margin-top: 15px; display: flex; gap: 8px;">
+      <div class="admin-card-actions" style="display: flex; gap: 8px;">
         <button class="btn-edit-prod" onclick="event.stopPropagation(); openProductModal('${product.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
         <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteProduct('${product.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>
       </div>
@@ -535,7 +535,7 @@ function renderRecipes(recipes) {
     ` : '';
 
     let adminControls = isAdminLoggedIn ? `
-      <div class="admin-card-actions" style="margin-top: 15px; display: flex; gap: 8px;">
+      <div class="admin-card-actions" style="display: flex; gap: 8px;">
         <button class="btn-edit-prod" onclick="event.stopPropagation(); editRecipe('${recipe.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
         <button class="btn-delete-prod" onclick="event.stopPropagation(); deleteRecipe('${recipe.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>
       </div>
