@@ -18,6 +18,40 @@ import {
   sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
+import { 
+  setupClientAuth, 
+  loginWithGoogle, 
+  loginWithEmail, 
+  registerWithEmail, 
+  openAuthModal, 
+  closeAuthModal 
+} from "./auth.js";
+
+// Inicializa a autenticação dos clientes passando as instâncias do Firebase
+setupClientAuth(app, db, auth);
+
+// Disponibiliza as funções no escopo global para os eventos onclick do HTML
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+
+window.handleGoogleLogin = () => {
+  loginWithGoogle(auth, db);
+};
+
+window.handleEmailAuth = (e) => {
+  e.preventDefault();
+  const email = document.getElementById("client-email").value;
+  const password = document.getElementById("client-password").value;
+  loginWithEmail(auth, email, password);
+};
+
+window.handleEmailRegister = (e) => {
+  e.preventDefault();
+  const email = document.getElementById("client-email").value;
+  const password = document.getElementById("client-password").value;
+  registerWithEmail(auth, db, email, password);
+};
+
 // ==========================================
 // 1. CONFIGURAÇÃO DO FIREBASE E ESTADO GLOBAL
 // ==========================================

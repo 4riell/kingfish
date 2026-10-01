@@ -38,6 +38,7 @@
           <button class="nav-btn active" onclick="showSection('catalogo')">Catálogo</button>
           <button class="nav-btn" onclick="showSection('receitas')">Receitas</button>
           <button class="nav-btn" onclick="openAboutModal()">Informações</button>
+          <button class="nav-btn" id="client-auth-btn" onclick="openAuthModal()">Entrar / Cadastrar</button>
         </nav>
 
         <button class="cart-toggle-btn" onclick="toggleCart()">
@@ -569,6 +570,42 @@
         <button class="btn-whatsapp" onclick="sendOrderToWhatsApp()">
           <i class="fa-brands fa-whatsapp"></i> Confirmar e Enviar no WhatsApp
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE LOGIN / CADASTRO DO CLIENTE -->
+  <div class="modal-overlay" id="client-auth-modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2>Área do Cliente</h2>
+        <button class="close-modal-btn" onclick="closeAuthModal()">&times;</button>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 15px; padding: 10px 0;">
+        <!-- Botão Google -->
+        <button type="button" class="btn-primary" style="background-color: #db4437; display: flex; align-items: center; justify-content: center; gap: 10px;" onclick="handleGoogleLogin()">
+          <i class="fa-brands fa-google"></i> Continuar com o Google
+        </button>
+
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 5px 0;">
+
+        <!-- Formulário de E-mail / Senha -->
+        <form onsubmit="handleEmailAuth(event)">
+          <div class="form-group">
+            <label>E-mail:</label>
+            <input type="email5" id="client-email" placeholder="seu@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>Senha:</label>
+            <input type="password" id="client-password" placeholder="Sua senha..." required>
+          </div>
+          
+          <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button type="submit" class="btn-primary" style="flex: 1;" onclick="isRegisterMode = false">Entrar</button>
+            <button type="button" class="btn-primary" style="flex: 1; background-color: var(--accent-gold); color: var(--dark-blue);" onclick="handleEmailRegister(event)">Cadastrar</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
