@@ -45,7 +45,8 @@ let currentRecipeCategory = "todos";
 let isAdminLoggedIn = false;
 let isAuthResolved = false;
 let currentProductImages = [];
-let currentRecipeImages = [];
+let currentRecipeImages1 = [];
+let currentRecipeImages2 = [];
 let currentRecipeVideo = null;
 
 onAuthStateChanged(auth, (user) => {
@@ -67,10 +68,11 @@ onAuthStateChanged(auth, (user) => {
 
 document.addEventListener("DOMContentLoaded", () => {
   setupDragAndDrop();
-  setupRecipeDragAndDrop();
+  setupRecipeDragAndDrop1();
+  setupRecipeDragAndDrop2();
   loadProducts();
   loadRecipes();
-  loadCategories(); // <--- AQUI
+  loadCategories();
 });
 
 // FUNÇÃO DE ZOOM PARA IMAGENS
@@ -100,7 +102,6 @@ function renderCategories() {
   const selectRecipe = document.getElementById("recipe-category");
   const listContainer = document.getElementById("category-list");
   
-  // 1. Lista na Modal do Admin
   if (listContainer) {
     listContainer.innerHTML = "";
     allCategories.forEach(cat => {
@@ -113,7 +114,6 @@ function renderCategories() {
     });
   }
 
-  // 2. Filtros do Catálogo
   if (catalogFilters) {
     catalogFilters.innerHTML = `
       <button class="filter-btn active" onclick="filterCategory('todos')">Todos</button>
@@ -124,7 +124,6 @@ function renderCategories() {
     });
   }
 
-  // 3. Filtros de Receitas
   if (recipeFilters) {
     recipeFilters.innerHTML = `<button class="filter-btn active" onclick="filterRecipeCategory('todos')">Todas</button>`;
     allCategories.forEach(cat => {
@@ -132,7 +131,6 @@ function renderCategories() {
     });
   }
 
-  // 4. Selects de Formulários (Produto e Receita)
   const currentProdVal = selectProd ? selectProd.value : "";
   const currentRecipeVal = selectRecipe ? selectRecipe.value : "";
   
@@ -152,7 +150,7 @@ function renderCategories() {
 }
 
 function loadCategories() {
-  const catRef = collection(db, "categories"); // Nova coleção unificada
+  const catRef = collection(db, "categories");
   onSnapshot(catRef, (snapshot) => {
     allCategories = [];
     snapshot.forEach(doc => {
@@ -238,79 +236,12 @@ window.closeLoginModal = function() {
   if (loginModal) loginModal.classList.remove("open");
 };
 
-// GERENCIAMENTO DE CATEGORIAS DINÂMICAS PARA RECEITAS
-function loadRecipeCategories() {
-  const catRef = collection(db, "recipe_categories");
-  onSnapshot(catRef, (snapshot) => {
-    allRecipeCategories = [];
-    snapshot.forEach(doc => {
-      allRecipeCategories.push({ id: doc.id, ...doc.data() });
-    });
-    renderRecipeCategories();
-  });
-}
-
-function renderRecipeCategories() {
-  const filterContainer = document.getElementById("recipe-filters");
-  const selectContainer = document.getElementById("recipe-category");
-  const listContainer = document.getElementById("category-list");
-  
-  if (listContainer) {
-    listContainer.innerHTML = "";
-    allRecipeCategories.forEach(cat => {
-      listContainer.innerHTML += `
-        <li style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; align-items:center;">
-          <strong>${cat.name}</strong>
-          <button onclick="deleteRecipeCategory('${cat.id}')" style="color:#e74c3c; background:none; border:none; cursor:pointer; font-size:1.1rem;"><i class="fa-solid fa-trash"></i></button>
-        </li>
-      `;
-    });
-  }
-
-  if (filterContainer) {
-    filterContainer.innerHTML = `<button class="filter-btn active" onclick="filterRecipeCategory('todos')">Todas</button>`;
-    allRecipeCategories.forEach(cat => {
-      filterContainer.innerHTML += `<button class="filter-btn" onclick="filterRecipeCategory('${cat.name}')">${cat.name}</button>`;
-    });
-  }
-
-  if (selectContainer) {
-    const currentVal = selectContainer.value;
-    selectContainer.innerHTML = `<option value="">Selecione...</option>`;
-    allRecipeCategories.forEach(cat => {
-      selectContainer.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
-    });
-    if (currentVal) selectContainer.value = currentVal;
-  }
-}
-
 window.openCategoryModal = function() {
   document.getElementById("category-modal").classList.add("open");
 };
 
 window.closeCategoryModal = function() {
   document.getElementById("category-modal").classList.remove("open");
-};
-
-window.addRecipeCategory = async function() {
-  const input = document.getElementById("new-category-name");
-  const name = input.value.trim();
-  if (!name) return;
-  try {
-    await addDoc(collection(db, "recipe_categories"), { name: name });
-    input.value = "";
-  } catch (error) {
-    alert("Erro ao adicionar categoria: " + error.message);
-  }
-};
-
-window.deleteRecipeCategory = async function(id) {
-  if (!confirm("Tem certeza que deseja excluir esta categoria?")) return;
-  try {
-    await deleteDoc(doc(db, "recipe_categories", id));
-  } catch (error) {
-    alert("Erro ao excluir: " + error.message);
-  }
 };
 
 function loadProducts() {
@@ -371,7 +302,10 @@ function renderRecipes(recipes) {
       openRecipeDetailModal(recipe.id);
     };
 
-    let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : ["https://via.placeholder.com/300x200?text=Receita"]);
+    let imagesList = Array.isArray(recipe.imagesGroup1) && recipe.imagesGroup1.length > 0 
+      ? recipe.imagesGroup1 
+      : (recipe.images && recipe.images.length > 0 ? recipe.images : ["https://via.placeholder.com/300x200?text=Receita"]);
+      
     const hasMultipleImages = imagesList.length > 1;
     const slidesHTML = imagesList.map(img => `<img src="${img}" alt="${recipe.title}" class="carousel-img">`).join('');
     
@@ -522,23 +456,66 @@ function renderProducts(products) {
   });
 }
 
-window.moveCarousel = function(productId, direction) {
-  const carousel = document.getElementById(`carousel-${productId}`);
+window.moveCarousel = function(itemId, direction) {
+  const carousel = document.getElementById(`carousel-${itemId}`);
   if (!carousel) return;
   const total = parseInt(carousel.getAttribute("data-total")) || 1;
   let currentIndex = parseInt(carousel.getAttribute("data-index")) || 0;
   currentIndex = (currentIndex + direction + total) % total;
-  window.setCarouselSlide(productId, currentIndex);
+  window.setCarouselSlide(itemId, currentIndex);
 };
 
-window.setCarouselSlide = function(productId, index) {
-  const carousel = document.getElementById(`carousel-${productId}`);
-  const slide = document.getElementById(`slide-${productId}`);
+window.setCarouselSlide = function(itemId, index) {
+  const carousel = document.getElementById(`carousel-${itemId}`);
+  const slide = document.getElementById(`slide-${itemId}`);
   if (!carousel || !slide) return;
   carousel.setAttribute("data-index", index);
   slide.style.transform = `translateX(-${index * 100}%)`;
   const dots = carousel.querySelectorAll(".carousel-dot");
   dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
+};
+
+// Funções para gerenciar múltiplos carrosséis nas modais de detalhes de receitas
+window.moveRecipeModalCarousel = function(trackId, direction) {
+  const track = document.getElementById(trackId);
+  if (!track) return;
+  const slides = track.children;
+  if (slides.length === 0) return;
+  
+  let currentIndex = parseInt(track.dataset.index || "0");
+  currentIndex += direction;
+  
+  if (currentIndex < 0) {
+    currentIndex = slides.length - 1;
+  } else if (currentIndex >= slides.length) {
+    currentIndex = 0;
+  }
+  
+  track.dataset.index = currentIndex;
+  track.style.transform = `translateX(-${currentIndex * 100}%)`;
+  
+  // Atualiza pontos do carrossel se houver
+  const parentContainer = track.closest('.recipe-carousel');
+  if (parentContainer) {
+    const dots = parentContainer.querySelectorAll(".carousel-dot");
+    dots.forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
+  }
+};
+
+window.setRecipeModalCarouselSlide = function(trackId, index) {
+  const track = document.getElementById(trackId);
+  if (!track) return;
+  const slides = track.children;
+  if (index < 0 || index >= slides.length) return;
+  
+  track.dataset.index = index;
+  track.style.transform = `translateX(-${index * 100}%)`;
+  
+  const parentContainer = track.closest('.recipe-carousel');
+  if (parentContainer) {
+    const dots = parentContainer.querySelectorAll(".carousel-dot");
+    dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
+  }
 };
 
 function setupDragAndDrop() {
@@ -552,18 +529,30 @@ function setupDragAndDrop() {
   dropZone.addEventListener('drop', (e) => { processImageFiles(e.dataTransfer.files); }, false);
 }
 
-function setupRecipeDragAndDrop() {
-  const dropZone = document.getElementById("recipe-drop-zone");
+function setupRecipeDragAndDrop1() {
+  const dropZone = document.getElementById("recipe-drop-zone-1");
   if (!dropZone) return;
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
   });
-  dropZone.addEventListener('drop', (e) => { processRecipeImageFiles(e.dataTransfer.files); }, false);
+  dropZone.addEventListener('drop', async (e) => { await processRecipeImageFiles1(e.dataTransfer.files); }, false);
+}
+
+function setupRecipeDragAndDrop2() {
+  const dropZone = document.getElementById("recipe-drop-zone-2");
+  if (!dropZone) return;
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
+  });
+  dropZone.addEventListener('drop', async (e) => { await processRecipeImageFiles2(e.dataTransfer.files); }, false);
 }
 
 window.handleImageFileSelect = (e) => processImageFiles(e.target.files);
-window.handleRecipeImageFileSelect = async (event) => {
-  if (event.target.files) await processRecipeImageFiles(event.target.files);
+window.handleRecipeImages1Select = async (e) => {
+  if (e.target.files) await processRecipeImageFiles1(e.target.files);
+};
+window.handleRecipeImages2Select = async (e) => {
+  if (e.target.files) await processRecipeImageFiles2(e.target.files);
 };
 
 function compressImage(file, maxWidth = 800, quality = 0.7) {
@@ -600,13 +589,22 @@ async function processImageFiles(files) {
   renderImagePreviews();
 }
 
-async function processRecipeImageFiles(files) {
+async function processRecipeImageFiles1(files) {
   for (const file of Array.from(files)) {
     if (!file.type.startsWith('image/')) continue;
     const compressedBase64 = await compressImage(file);
-    currentRecipeImages.push(compressedBase64);
+    currentRecipeImages1.push(compressedBase64);
   }
-  renderRecipeImagePreviews();
+  renderRecipeImagePreviews1();
+}
+
+async function processRecipeImageFiles2(files) {
+  for (const file of Array.from(files)) {
+    if (!file.type.startsWith('image/')) continue;
+    const compressedBase64 = await compressImage(file);
+    currentRecipeImages2.push(compressedBase64);
+  }
+  renderRecipeImagePreviews2();
 }
 
 function renderImagePreviews() {
@@ -624,23 +622,39 @@ function renderImagePreviews() {
   });
 }
 
-function renderRecipeImagePreviews() {
-  const container = document.getElementById("recipe-images-preview");
+function renderRecipeImagePreviews1() {
+  const container = document.getElementById("recipe-images-1-preview");
   if (!container) return;
   container.innerHTML = "";
-  currentRecipeImages.forEach((imgSrc, index) => {
+  currentRecipeImages1.forEach((imgSrc, index) => {
     const thumb = document.createElement("div");
     thumb.className = "preview-thumb";
     thumb.innerHTML = `
-      <img src="${imgSrc}" alt="Previsualização">
-      <button type="button" class="preview-thumb-remove" onclick="removeRecipeImage(${index})">&times;</button>
+      <img src="${imgSrc}" alt="Preview 1">
+      <button type="button" class="preview-thumb-remove" onclick="removeRecipeImage1(${index})">&times;</button>
+    `;
+    container.appendChild(thumb);
+  });
+}
+
+function renderRecipeImagePreviews2() {
+  const container = document.getElementById("recipe-images-2-preview");
+  if (!container) return;
+  container.innerHTML = "";
+  currentRecipeImages2.forEach((imgSrc, index) => {
+    const thumb = document.createElement("div");
+    thumb.className = "preview-thumb";
+    thumb.innerHTML = `
+      <img src="${imgSrc}" alt="Preview 2">
+      <button type="button" class="preview-thumb-remove" onclick="removeRecipeImage2(${index})">&times;</button>
     `;
     container.appendChild(thumb);
   });
 }
 
 window.removeImagePreview = (index) => { currentProductImages.splice(index, 1); renderImagePreviews(); };
-window.removeRecipeImage = (index) => { currentRecipeImages.splice(index, 1); renderRecipeImagePreviews(); };
+window.removeRecipeImage1 = (index) => { currentRecipeImages1.splice(index, 1); renderRecipeImagePreviews1(); };
+window.removeRecipeImage2 = (index) => { currentRecipeImages2.splice(index, 1); renderRecipeImagePreviews2(); };
 
 window.openProductModal = function(productId = null) {
   const modal = document.getElementById("admin-modal");
@@ -696,8 +710,6 @@ window.handleRecipeVideoFileSelect = function(event) {
   const file = event.target.files[0];
   if (!file || !file.type.startsWith('video/')) return;
   
-  // O Firestore limita documentos a 1MB (~1.048.576 bytes). 
-  // Avisamos o usuário caso o vídeo ultrapasse 800KB para garantir margem de segurança.
   if (file.size > 800 * 1024) {
     alert("O vídeo selecionado é muito grande para ser salvo diretamente no banco de dados (Limite máximo de ~800KB). Por favor, escolha um vídeo mais curto ou compactado.");
     event.target.value = "";
@@ -712,20 +724,20 @@ window.handleRecipeVideoFileSelect = function(event) {
   reader.readAsDataURL(file);
 };
 
-
 window.openRecipeModal = function() {
   document.getElementById("recipe-id-input").value = "";
   document.getElementById("recipe-form").reset();
-  currentRecipeImages = [];
+  currentRecipeImages1 = [];
+  currentRecipeImages2 = [];
   currentRecipeVideo = null;
-  renderRecipeImagePreviews();
+  renderRecipeImagePreviews1();
+  renderRecipeImagePreviews2();
   renderRecipeVideoPreview();
   populateRecipeProductSelect(""); 
   const modal = document.getElementById("recipe-modal");
   if (modal) modal.classList.add("open");
 };
 
-// Nova função para fechar o Modal de Receita
 window.closeRecipeModal = function() {
   document.getElementById("recipe-modal")?.classList.remove("open");
 };
@@ -744,10 +756,12 @@ window.editRecipe = function(recipeId) {
   document.getElementById("recipe-ingredients").value = recipe.ingredients || "";
   document.getElementById("recipe-instructions").value = recipe.instructions || "";
 
-  currentRecipeImages = Array.isArray(recipe.images) ? [...recipe.images] : (recipe.image ? [recipe.image] : []);
+  currentRecipeImages1 = Array.isArray(recipe.imagesGroup1) ? [...recipe.imagesGroup1] : (recipe.images && recipe.images[0] ? [recipe.images[0]] : []);
+  currentRecipeImages2 = Array.isArray(recipe.imagesGroup2) ? [...recipe.imagesGroup2] : (recipe.images && recipe.images[1] ? [recipe.images[1]] : []);
   currentRecipeVideo = recipe.video || null;
   
-  renderRecipeImagePreviews();
+  renderRecipeImagePreviews1();
+  renderRecipeImagePreviews2();
   renderRecipeVideoPreview();
   window.closeRecipeDetailModal();
   document.getElementById("recipe-modal")?.classList.add("open");
@@ -788,7 +802,8 @@ window.handleRecipeSubmit = async function(e) {
     relatedProduct: document.getElementById("recipe-prod-select").value,
     ingredients: document.getElementById("recipe-ingredients").value,
     instructions: document.getElementById("recipe-instructions").value,
-    images: currentRecipeImages,
+    imagesGroup1: currentRecipeImages1,
+    imagesGroup2: currentRecipeImages2,
     video: currentRecipeVideo
   };
 
@@ -814,16 +829,31 @@ window.openRecipeDetailModal = function(recipeId) {
 
   const modal = document.getElementById("recipe-detail-modal");
   document.getElementById("modal-recipe-title").innerText = recipe.title;
-  
-  // 1. PRIMEIRA IMAGEM (Antes da descrição)
-  const media1 = document.getElementById("modal-recipe-media-1");
-  let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : []);
-  
-  if (imagesList.length > 0) {
-    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; max-height: 250px; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;">`;    
-    media1.style.display = "block";
-  } else {
-    media1.style.display = "none";
+
+  // 1. CARROSSEL 1 (Antes da descrição)
+  const carousel1 = document.getElementById('recipe-carousel-1');
+  const track1 = document.getElementById('carousel-images-1');
+  if (track1) {
+    track1.innerHTML = '';
+    track1.dataset.index = "0";
+    track1.style.transform = "translateX(0px)";
+    const list1 = Array.isArray(recipe.imagesGroup1) && recipe.imagesGroup1.length > 0 
+      ? recipe.imagesGroup1 
+      : (recipe.images ? [recipe.images[0]] : []);
+      
+    if (list1.length > 0) {
+      list1.forEach(imgSrc => {
+        track1.innerHTML += `<img src="${imgSrc}" style="min-width:100%; width:100%; max-height:250px; object-fit:contain; border-radius:8px;">`;
+      });
+      
+      // Adiciona botões de navegação se houver mais de uma imagem
+      const hasMultiple = list1.length > 1;
+      const navContainer = carousel1.querySelector('.carousel-nav-buttons') || carousel1;
+      
+      carousel1.style.display = 'block';
+    } else {
+      carousel1.style.display = 'none';
+    }
   }
 
   // 2. DESCRIÇÃO
@@ -835,20 +865,32 @@ window.openRecipeDetailModal = function(recipeId) {
     descElement.style.display = "none";
   }
 
-  // 3. SEGUNDA IMAGEM (Antes dos ingredientes)
-  const media2 = document.getElementById("modal-recipe-media-2");
-  if (imagesList.length > 1) {
-    media2.innerHTML = `<img src="${imagesList[1]}" alt="Prato Finalizado" style="width: 100%; max-height: 220px; border-radius: 8px; object-fit:contain; background:#f8fafc;">`;
-    media2.style.display = "block";
-  } else {
-    media2.style.display = "none";
+  // 3. CARROSSEL 2 (Antes dos ingredientes e modo de preparo)
+  const carousel2 = document.getElementById('recipe-carousel-2');
+  const track2 = document.getElementById('carousel-images-2');
+  if (track2) {
+    track2.innerHTML = '';
+    track2.dataset.index = "0";
+    track2.style.transform = "translateX(0px)";
+    const list2 = Array.isArray(recipe.imagesGroup2) && recipe.imagesGroup2.length > 0 
+      ? recipe.imagesGroup2 
+      : (recipe.images && recipe.images[1] ? [recipe.images[1]] : []);
+      
+    if (list2.length > 0) {
+      list2.forEach(imgSrc => {
+        track2.innerHTML += `<img src="${imgSrc}" style="min-width:100%; width:100%; max-height:250px; object-fit:contain; border-radius:8px;">`;
+      });
+      carousel2.style.display = 'block';
+    } else {
+      carousel2.style.display = 'none';
+    }
   }
 
   // 4. INGREDIENTES E MODO DE PREPARO
   document.getElementById("modal-recipe-ingredients").innerHTML = recipe.ingredients ? recipe.ingredients.replace(/\n/g, '<br>') : "";
   document.getElementById("modal-recipe-instructions").innerHTML = recipe.instructions ? recipe.instructions.replace(/\n/g, '<br>') : "";
 
-  // 5. VÍDEO (No fim)
+  // 5. VÍDEO
   const videoContainer = document.getElementById("modal-recipe-video-container");
   if (recipe.video) {
     videoContainer.innerHTML = `<video controls src="${recipe.video}" style="width:100%; max-height:220px; border-radius:8px; object-fit:contain; background:#000;"></video>`;
@@ -1062,7 +1104,6 @@ window.openProductDetailModal = function(productId) {
 
   mediaContainer.innerHTML = `<div class="carousel-container" id="modal-carousel" data-index="0" data-total="${imagesList.length}"><div class="carousel-slide" id="modal-carousel-slide">${slidesHTML}</div>${navButtons}${dotsHTML}</div>`;
 
-  // Aplica o Zoom nas imagens do Modal do Produto!
   const modalImgs = mediaContainer.querySelectorAll('.carousel-img');
   modalImgs.forEach(img => setupImageZoom(img));
 
