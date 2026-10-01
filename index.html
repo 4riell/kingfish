@@ -360,8 +360,9 @@
 
   <!-- MODAL DE CADASTRO DE RECEITAS -->
   <div class="modal-overlay" id="recipe-modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
+        <h2 id="modal-recipe-form-title">Cadastrar / Editar Receita</h2>
         <button class="close-modal-btn" onclick="closeRecipeModal()">&times;</button>
       </div>
       
@@ -374,15 +375,9 @@
         </div>
 
         <div class="form-group">
-          <label for="recipe-desc-input">Descrição da Receita (Resumo do prato):</label>
-          <textarea id="recipe-desc-input" rows="2" placeholder="Ex: Um prato delicioso e tradicional ideal para a família..."></textarea>
-        </div>
-
-        <div class="form-group">
           <label for="recipe-category">Categoria da Receita:</label>
           <select id="recipe-category" required onchange="populateRecipeProductSelect(this.value)">
             <option value="">Selecione...</option>
-            <!-- Options geradas dinamicamente via JS -->
           </select>
         </div>
 
@@ -390,9 +385,27 @@
           <label for="recipe-prod-select">Produto Relacionado:</label>
           <select id="recipe-prod-select">
             <option value="">Nenhum produto associado</option>
-            <!-- Opções carregadas dinamicamente via JS -->
           </select>
         </div>
+
+        <!-- 1ª FOTO DO PRATO (ANTES DA DESCRIÇÃO) -->
+        <div class="form-group">
+          <label>Foto Inicial do Prato (Antes da Descrição):</label>
+          <div class="drop-zone" id="recipe-drop-zone" onclick="document.getElementById('recipe-images-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+            <p><strong>Clique para buscar</strong> ou arraste a foto aqui</p>
+            <input type="file" id="recipe-images-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImageFileSelect(event)">
+          </div>
+          <div class="images-preview-container" id="recipe-images-preview"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="recipe-desc-input">Descrição da Receita (Resumo do prato):</label>
+          <textarea id="recipe-desc-input" rows="2" placeholder="Ex: Um prato delicioso e tradicional ideal para a família..."></textarea>
+        </div>
+
+        <!-- SEGUNDA FOTO (ANTES DOS INGREDIENTES) - Caso queira separar ou usar a mesma lista de imagens controlada por índice -->
+        <!-- Opcional: Se preferir gerenciar fotos adicionais, você pode adaptá-las, mas mantendo a ordem visual abaixo: -->
 
         <div class="form-group">
           <label for="recipe-ingredients">Ingredientes:</label>
@@ -404,26 +417,15 @@
           <textarea id="recipe-instructions" rows="4" placeholder="Ex: 1. Refogue a cebola e o alho..."></textarea>
         </div>
 
-        <!-- SEPARADO: UPLOAD DE VÍDEO -->
+        <!-- VÍDEO DA RECEITA (NO FIM) -->
         <div class="form-group">
-          <label>Vídeo da Receita (Opcional):</label>
+          <label>Vídeo da Receita (Opcional - No fim):</label>
           <div class="drop-zone" onclick="document.getElementById('recipe-video-input').click()">
             <i class="fa-solid fa-video drop-zone-icon"></i>
             <p><strong>Clique para buscar</strong> ou arraste o vídeo aqui</p>
             <input type="file" id="recipe-video-input" accept="video/*" style="display: none;" onchange="handleRecipeVideoFileSelect(event)">
           </div>
           <div class="images-preview-container" id="recipe-video-preview"></div>
-        </div>
-
-        <!-- SEPARADO: UPLOAD DE IMAGENS -->
-        <div class="form-group">
-          <label>Fotos do Prato (Recomendado 2 fotos):</label>
-          <div class="drop-zone" id="recipe-drop-zone" onclick="document.getElementById('recipe-images-input').click()">
-            <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
-            <p><strong>Clique para buscar</strong> ou arraste as fotos da receita aqui</p>
-            <input type="file" id="recipe-images-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImageFileSelect(event)">
-          </div>
-          <div class="images-preview-container" id="recipe-images-preview"></div>
         </div>
 
         <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">

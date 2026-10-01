@@ -815,6 +815,18 @@ window.openRecipeDetailModal = function(recipeId) {
   const modal = document.getElementById("recipe-detail-modal");
   document.getElementById("modal-recipe-title").innerText = recipe.title;
   
+  // 1. PRIMEIRA IMAGEM (Antes da descrição)
+  const media1 = document.getElementById("modal-recipe-media-1");
+  let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : []);
+  
+  if (imagesList.length > 0) {
+    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; max-height: 250px; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;">`;    
+    media1.style.display = "block";
+  } else {
+    media1.style.display = "none";
+  }
+
+  // 2. DESCRIÇÃO
   const descElement = document.getElementById("modal-recipe-desc");
   if (recipe.description) {
     descElement.innerText = recipe.description;
@@ -823,44 +835,28 @@ window.openRecipeDetailModal = function(recipeId) {
     descElement.style.display = "none";
   }
 
+  // 3. SEGUNDA IMAGEM (Antes dos ingredientes)
+  const media2 = document.getElementById("modal-recipe-media-2");
+  if (imagesList.length > 1) {
+    media2.innerHTML = `<img src="${imagesList[1]}" alt="Prato Finalizado" style="width: 100%; max-height: 220px; border-radius: 8px; object-fit:contain; background:#f8fafc;">`;
+    media2.style.display = "block";
+  } else {
+    media2.style.display = "none";
+  }
+
+  // 4. INGREDIENTES E MODO DE PREPARO
+  document.getElementById("modal-recipe-ingredients").innerHTML = recipe.ingredients ? recipe.ingredients.replace(/\n/g, '<br>') : "";
+  document.getElementById("modal-recipe-instructions").innerHTML = recipe.instructions ? recipe.instructions.replace(/\n/g, '<br>') : "";
+
+  // 5. VÍDEO (No fim)
   const videoContainer = document.getElementById("modal-recipe-video-container");
   if (recipe.video) {
-    // max-height alterado de 400px para 220px e object-fit para contain
-    videoContainer.innerHTML = `<video controls src="${recipe.video}" style="width:100%; max-height:220px; border-radius:8px; object-fit:contain; background:#000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></video>`;
+    videoContainer.innerHTML = `<video controls src="${recipe.video}" style="width:100%; max-height:220px; border-radius:8px; object-fit:contain; background:#000;"></video>`;
     videoContainer.style.display = "block";
   } else {
     videoContainer.innerHTML = "";
     videoContainer.style.display = "none";
   }
-
-  document.getElementById("modal-recipe-tag").innerHTML = recipe.relatedProduct 
-    ? `<span class="recipe-sheet-tag" style="background:#f1c40f; padding:5px 10px; border-radius:12px; font-weight:bold;"><i class="fa-solid fa-fish"></i> Ingrediente Principal: ${recipe.relatedProduct}</span>` 
-    : "";
-
-  const media1 = document.getElementById("modal-recipe-media-1");
-  const media2 = document.getElementById("modal-recipe-media-2");
-  
-  let imagesList = Array.isArray(recipe.images) && recipe.images.length > 0 ? recipe.images : (recipe.image ? [recipe.image] : []);
-  
-  if (imagesList.length > 0) {
-    // max-height inserido (220px) e object-fit:contain
-    media1.innerHTML = `<img src="${imagesList[0]}" alt="Preparo 1" style="width: 100%; max-height: 250px; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;">`;    media1.style.display = "block";
-    setupImageZoom(media1.querySelector('img'));
-  } else {
-    media1.style.display = "none";
-  }
-
-  if (imagesList.length > 1) {
-    // max-height inserido (220px) e object-fit:contain
-    media2.innerHTML = `<img src="${imagesList[imagesList.length - 1]}" alt="Prato Finalizado" style="width: 100%; max-height: 220px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit:contain; background:#f8fafc;">`;
-    media2.style.display = "block";
-    setupImageZoom(media2.querySelector('img'));
-  } else {
-    media2.style.display = "none";
-  }
-
-  document.getElementById("modal-recipe-ingredients").innerHTML = recipe.ingredients ? recipe.ingredients.replace(/\n/g, '<br>') : "";
-  document.getElementById("modal-recipe-instructions").innerHTML = recipe.instructions ? recipe.instructions.replace(/\n/g, '<br>') : "";
 
   if (modal) modal.classList.add("open");
 };
