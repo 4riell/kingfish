@@ -393,7 +393,8 @@ body {
   border: 1px solid #eef2f5;
   cursor: pointer;
   position: relative;
-  height: 450px; /* Altura fixa garantida para evitar estouro */
+  margin-top: auto; 
+  width: 100%;
 }
 
 .product-card:hover {
@@ -621,7 +622,8 @@ body {
   flex-direction: column;
   border: 1px solid #eef2f5;
   cursor: pointer;
-  height: 460px; /* Altura fixa para manter o padrão do card */
+  margin-top: auto; 
+  width: 100%;
 }
 
 .recipe-img-wrapper {
