@@ -804,30 +804,107 @@ window.setRecipeModalCarouselSlide = function(trackId, index) {
 // ==========================================
 window.setupImageZoom = function(imgElement) {
   if (!imgElement) return;
-  
-  // Detecta se é um dispositivo primariamente touch ou móvel
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-  if (isTouchDevice) {
-    // Comportamento otimizado para celulares / touch
-    imgElement.style.transition = "transform 0.3s ease";
-    imgElement.style.cursor = "zoom-in";
-    
-    let isZoomed = false;
-    imgElement.addEventListener("click", () => {
-      isZoomed = !isZoomed;
-      if (isZoomed) {
-        imgElement.style.transform = "scale(2)";
-      } else {
-        imgElement.style.transform = "scale(1)";
-      }
-    });
-  } else {
-    // Em computadores (desktop), removemos o efeito incômodo de hover/mousemove
-    // Permitindo que o computador exiba a imagem normalmente sem zoom automático indesejado.
-    imgElement.style.transform = "scale(1)";
-    imgElement.style.cursor = "default";
+  let scale = 1;
+  let panning = false;
+  let pointX = 0;
+  let pointY = 0;
+  let startX = 0;
+  let startY = 0;
+
+  let initialDistance = null;
+
+  function setTransform() {
+    imgElement.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
   }
+
+  // --- SUPORTE A MOUSE (DESKTOP) ---
+  imgElement.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    startX = e.clientX - pointX;
+    startY = e.clientY - pointY;
+    panning = true;
+    imgElement.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!panning) return;
+    e.preventDefault();
+    pointX = e.clientX - startX;
+    pointY = e.clientY - startY;
+    setTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    panning = false;
+    imgElement.style.cursor = 'grab';
+  });
+
+  // Duplo clique para dar zoom / resetar no desktop
+  imgElement.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    if (scale === 1) {
+      scale = 2.5;
+    } else {
+      scale = 1;
+      pointX = 0;
+      pointY = 0;
+    }
+    setTransform();
+  });
+
+  // --- SUPORTE A TOUCH (CELULAR: PUXAR, ARRASTAR E ZOOM) ---
+  imgElement.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      // Toque com 1 dedo: iniciar arrasto (pan) se já estiver com zoom
+      if (scale > 1) {
+        panning = true;
+        startX = e.touches[0].clientX - pointX;
+        startY = e.touches[0].clientY - pointY;
+      }
+    } else if (e.touches.length === 2) {
+      // Toque com 2 dedos: pinça para zoom
+      panning = false;
+      initialDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  }, { passive: false });
+
+  imgElement.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1 && panning && scale > 1) {
+      e.preventDefault();
+      pointX = e.touches[0].clientX - startX;
+      pointY = e.touches[0].clientY - startY;
+      setTransform();
+    } else if (e.touches.length === 2 && initialDistance) {
+      e.preventDefault();
+      const currentDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      let zoomFactor = currentDistance / initialDistance;
+      scale = Math.min(Math.max(1, scale * zoomFactor), 4); // Limita o zoom entre 1x e 4x
+      initialDistance = currentDistance;
+      setTransform();
+    }
+  }, { passive: false });
+
+  imgElement.addEventListener('touchend', (e) => {
+    if (e.touches.length < 2) {
+      initialDistance = null;
+    }
+    if (e.touches.length === 0) {
+      panning = false;
+      if (scale <= 1) {
+        scale = 1;
+        pointX = 0;
+        pointY = 0;
+        setTransform();
+      }
+    }
+  });
 };
 
 function compressImage(file, maxWidth = 800, quality = 0.7) {
