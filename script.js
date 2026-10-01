@@ -540,9 +540,6 @@ function renderRecipes(recipes) {
       </div>
     ` : "";
 
-    const categoryBadge = recipe.category ? `<span class="recipe-product-tag" style="background:#f1c40f; color:#333;"><i class="fa-solid fa-tag"></i> ${recipe.category.toUpperCase()}</span>` : '';
-    const productBadge = recipe.relatedProduct ? `<span class="recipe-product-tag"><i class="fa-solid fa-fish"></i> ${recipe.relatedProduct}</span>` : '';
-
     card.innerHTML = `
       <div class="carousel-container" id="carousel-recipe-${recipe.id}" data-index="0" data-total="${imagesList.length}">
         <div class="carousel-slide" id="slide-recipe-${recipe.id}">${slidesHTML}</div>
@@ -551,7 +548,6 @@ function renderRecipes(recipes) {
       </div>
       <div class="recipe-content">
         <h3 class="recipe-title">${recipe.title}</h3>
-        <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px;">${categoryBadge}${productBadge}</div>
         <p class="recipe-desc">${recipe.ingredients ? `<strong>Ingredientes:</strong><br>${recipe.ingredients.replace(/\n/g, '<br>')}` : ''}</p>
         <p class="recipe-desc" style="margin-top: 8px;">${recipe.instructions ? `<strong>Modo de Preparo:</strong><br>${recipe.instructions.replace(/\n/g, '<br>')}` : ''}</p>
         ${adminControls}
