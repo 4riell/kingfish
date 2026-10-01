@@ -429,9 +429,17 @@ body {
   font-size: 0.85rem;
   color: #666;
   margin-bottom: 10px;
+  
+  /* Propriedade padrão moderna */
+  line-clamp: 3;
+  
+  /* Fallback necessário para garantir o funcionamento em múltiplos navegadores */
+  display: block;
   display: -webkit-box;
-  line-clamp: 2; /* Limita a descrição a no máximo 2 ou 3 linhas */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  
+  /* Essencial para cortar o texto excedente e adicionar reticências (...) */
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -657,14 +665,21 @@ body {
 }
 
 .recipe-desc {
-  font-size: 0.88rem;
-  color: #555;
-  line-height: 1.4;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 10px;
+  
+  /* Propriedade padrão moderna */
+  line-clamp: 3;
+  
+  /* Fallback necessário para garantir o funcionamento em múltiplos navegadores */
+  display: block;
   display: -webkit-box;
-  line-clamp: 3; /* Limita as linhas da descrição da receita */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  
+  /* Essencial para cortar o texto excedente e adicionar reticências (...) */
   overflow: hidden;
-  font-weight: bold;
   text-overflow: ellipsis;
 }
 
