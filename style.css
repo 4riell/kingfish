@@ -393,6 +393,7 @@ body {
   border: 1px solid #eef2f5;
   cursor: pointer;
   position: relative;
+  height: 420px;
 }
 
 .product-card:hover {
@@ -413,6 +414,7 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  overflow: hidden;
 }
 
 .product-title {
@@ -428,6 +430,11 @@ body {
   color: #666;
   margin-bottom: 10px;
   flex-grow: 1;
+  display: -webkit-box;
+  line-clamp: 3; /* Limita a 3 linhas visíveis (pode ajustar para 2 ou 4) */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .price-container {
@@ -1360,4 +1367,21 @@ body {
   font-size: 0.9rem;
   color: #4a5568;
   padding: 4px 0;
+}
+
+.schedule-row.closed {
+  color: #a0aec0;
+}
+
+.text-closed {
+  color: #e53e3e;
+  font-weight: 700;
+}
+
+.address-link {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
