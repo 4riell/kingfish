@@ -853,13 +853,25 @@ body {
   margin-left: auto;
 }
 
+/* Garante que o corpo do modal distribua os elementos corretamente */
 .modal-detail-body {
-  overflow-y: auto;
+  overflow-y: visible; /* Deixa o scroll geral controlado pelo container pai ou divide as seções */
   max-height: calc(85vh - 100px);
-  padding-right: 5px;
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
+
+/* Mantém a mídia do produto fixa/visível no topo e impede que encolha */
+#modal-product-media {
+  flex-shrink: 0;
+}
+
+/* Permite que apenas a descrição e o preço tenham rolagem se o texto for excessivamente longo */
+.modal-detail-info {
+  overflow-y: auto;
+  max-height: 40vh;
+  padding-right: 5px;
 }
 
 .modal-detail-body::-webkit-scrollbar,
