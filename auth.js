@@ -11,27 +11,16 @@ import {
   getFirestore, 
   doc, 
   setDoc, 
-  getDoc, 
-  updateDoc, 
-  arrayUnion 
+  getDoc 
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-// Supondo que 'app' venha inicializado ou importe do seu arquivo principal
-// Aqui exportamos as funções para uso global
 export function setupClientAuth(app, db, auth) {
-  const googleProvider = new GoogleAuthProvider();
-
-  // Observa o estado de autenticação do usuário cliente
   onAuthStateChanged(auth, async (user) => {
     const clientNavBtn = document.getElementById("client-auth-btn");
-    const clientProfileSection = document.getElementById("client-profile-section");
-    
     if (user) {
-      // Usuário logado
       if (clientNavBtn) clientNavBtn.textContent = "Minha Conta";
       loadClientData(user, db);
     } else {
-      // Usuário deslogado
       if (clientNavBtn) clientNavBtn.textContent = "Entrar / Cadastrar";
     }
   });
@@ -42,7 +31,7 @@ export async function loginWithGoogle(auth, db) {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    await ensureClientDocExists(user, db);
+    await ensureClientDocExists(user, db, user.displayName, "");
     alert("Login realizado com sucesso!");
     closeAuthModal();
   } catch (error) {
@@ -57,14 +46,18 @@ export async function loginWithEmail(auth, email, password) {
     alert("Login efetuado com sucesso!");
     closeAuthModal();
   } catch (error) {
-    alert("Erro ao fazer login: " + error.message);
+    alert("Erro ao fazer login: Verifique seu e-mail e senha.");
   }
 }
 
-export async function registerWithEmail(auth, db, email, password) {
+export async function registerWithEmail(auth, db, name, email, password, confirmPassword, phone) {
+  if (password !== confirmPassword) {
+    alert("As senhas não coincidem!");
+    return;
+  }
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await ensureClientDocExists(userCredential.user, db);
+    await ensureClientDocExists(userCredential.user, db, name, phone);
     alert("Cadastro realizado com sucesso!");
     closeAuthModal();
   } catch (error) {
@@ -72,16 +65,17 @@ export async function registerWithEmail(auth, db, email, password) {
   }
 }
 
-async function ensureClientDocExists(user, db) {
+async function ensureClientDocExists(user, db, name = "Cliente", phone = "") {
   const userRef = doc(db, "clients", user.uid);
   const snap = await getDoc(userRef);
   if (!snap.exists()) {
     await setDoc(userRef, {
-      name: user.displayName || "Cliente",
+      name: name || user.displayName || "Cliente",
       email: user.email,
+      phone: phone,
       addresses: [],
       savedOrders: [],
-      coupons: ["BEMVINDO10"], // Cupom inicial de exemplo
+      coupons: ["BEMVINDO10"],
       createdAt: new Date().toISOString()
     });
   }
@@ -91,9 +85,7 @@ export async function loadClientData(user, db) {
   const userRef = doc(db, "clients", user.uid);
   const snap = await getDoc(userRef);
   if (snap.exists()) {
-    const data = snap.data();
-    // Você pode popular elementos na interface do perfil do cliente aqui (ex: endereços salvos, cupons)
-    window.currentClientData = data;
+    window.currentClientData = snap.data();
   }
 }
 
@@ -104,3 +96,30 @@ export function openAuthModal() {
 export function closeAuthModal() {
   document.getElementById("client-auth-modal")?.classList.remove("open");
 }
+
+// Alternar abas do Modal (Login <-> Cadastro)
+window.switchAuthTab = function(tab) {
+  const loginForm = document.getElementById("form-login");
+  const registerForm = document.getElementById("form-register");
+  const loginBtn = document.getElementById("tab-login-btn");
+  const registerBtn = document.getElementById("tab-register-btn");
+  const modalTitle = document.getElementById("auth-modal-title");
+
+  if (tab === 'login') {
+    loginForm.style.display = "block";
+    registerForm.style.display = "none";
+    loginBtn.style.background = "white";
+    loginBtn.style.fontWeight = "bold";
+    registerBtn.style.background = "transparent";
+    registerBtn.style.fontWeight = "normal";
+    modalTitle.innerText = "Entrar na sua Conta";
+  } else {
+    loginForm.style.display = "none";
+    registerForm.style.display = "block";
+    registerBtn.style.background = "white";
+    registerBtn.style.fontWeight = "bold";
+    loginBtn.style.background = "transparent";
+    loginBtn.style.fontWeight = "normal";
+    modalTitle.innerText = "Criar Nova Conta";
+  }
+};
