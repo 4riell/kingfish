@@ -692,7 +692,51 @@
       </div>
     </div>
   </div>
-
+  <!-- MODAL DE CADASTRO / EDIÇÃO DE ENDEREÇO DO CLIENTE -->
+  <div class="modal-overlay" id="address-form-modal">
+    <div class="modal-content" style="max-width: 450px;">
+      <div class="modal-header">
+        <h2>Gerenciar Endereço</h2>
+        <button class="close-modal-btn" onclick="closeAddressModal()">&times;</button>
+      </div>
+      <form id="address-form" onsubmit="handleAddressSubmit(event)">
+        <input type="hidden" id="address-index">
+        <div class="form-group">
+          <label>CEP:</label>
+          <input type="text" id="addr-cep" placeholder="00000-000" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cidade:</label>
+            <input type="text" id="addr-cidade" required>
+          </div>
+          <div class="form-group">
+            <label>Bairro:</label>
+            <input type="text" id="addr-bairro" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Rua / Logradouro:</label>
+          <input type="text" id="addr-rua" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Número:</label>
+            <input type="text" id="addr-numero" required>
+          </div>
+          <div class="form-group">
+            <label>Complemento:</label>
+            <input type="text" id="addr-complemento" placeholder="Apto, Bloco...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Ponto de Referência:</label>
+          <input type="text" id="addr-referencia" placeholder="Próximo a..." required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px;">Salvar Endereço</button>
+      </form>
+    </div>
+  </div>
   <script type="module" src="script.js"></script>
 </body>
 </html>

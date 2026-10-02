@@ -1506,3 +1506,7 @@ window.fillCheckoutWithAddress = function(index) {
   document.getElementById("checkout-complemento").value = addr.complemento || "";
   document.getElementById("checkout-referencia").value = addr.referencia || "";
 };
+
+window.openNewAddressForm = function() {
+  window.openAddressModal(null);
+};
