@@ -1344,3 +1344,165 @@ function updateCartUI() {
   if (cartTotal) cartTotal.innerText = `R$ ${itemsSubtotal.toFixed(2)}`;
   if (modalTotal) modalTotal.innerText = `R$ ${(itemsSubtotal + taxa).toFixed(2)}`;
 }
+
+// ==========================================
+// GERENCIAMENTO DE ENDEREÇOS DO CLIENTE
+// ==========================================
+
+window.openAddressModal = function(addressIndex = null) {
+  const modal = document.getElementById("address-form-modal");
+  const form = document.getElementById("address-form");
+  if (form) form.reset();
+
+  document.getElementById("address-index").value = addressIndex !== null ? addressIndex : "";
+  
+  if (addressIndex !== null && window.currentClientData?.addresses) {
+    const addr = window.currentClientData.addresses[addressIndex];
+    if (addr) {
+      document.getElementById("addr-cep").value = addr.cep || "";
+      document.getElementById("addr-cidade").value = addr.cidade || "";
+      document.getElementById("addr-bairro").value = addr.bairro || "";
+      document.getElementById("addr-rua").value = addr.rua || "";
+      document.getElementById("addr-numero").value = addr.numero || "";
+      document.getElementById("addr-complemento").value = addr.complemento || "";
+      document.getElementById("addr-referencia").value = addr.referencia || "";
+    }
+  }
+  modal?.classList.add("open");
+};
+
+window.closeAddressModal = function() {
+  document.getElementById("address-form-modal")?.classList.remove("open");
+};
+
+window.handleAddressSubmit = async function(e) {
+  e.preventDefault();
+  const user = auth.currentUser;
+  if (!user) return alert("Você precisa estar logado.");
+
+  const indexStr = document.getElementById("address-index").value;
+  const newAddress = {
+    cep: document.getElementById("addr-cep").value.trim(),
+    cidade: document.getElementById("addr-cidade").value.trim(),
+    bairro: document.getElementById("addr-bairro").value.trim(),
+    rua: document.getElementById("addr-rua").value.trim(),
+    numero: document.getElementById("addr-numero").value.trim(),
+    complemento: document.getElementById("addr-complemento").value.trim(),
+    referencia: document.getElementById("addr-referencia").value.trim()
+  };
+
+  let updatedAddresses = window.currentClientData?.addresses ? [...window.currentClientData.addresses] : [];
+
+  if (indexStr === "") {
+    // Adicionar novo endereço (entra no final, tornando-se o último)
+    updatedAddresses.push(newAddress);
+  } else {
+    // Editar endereço existente
+    const idx = parseInt(indexStr);
+    updatedAddresses[idx] = newAddress;
+  }
+
+  try {
+    const clientRef = doc(db, "clients", user.uid);
+    await updateDoc(clientRef, { addresses: updatedAddresses });
+    window.currentClientData.addresses = updatedAddresses;
+    alert("Endereço salvo com sucesso!");
+    window.closeAddressModal();
+    window.openClientAccountModal(); // Atualiza a UI da conta
+  } catch (error) {
+    alert("Erro ao salvar endereço: " + error.message);
+  }
+};
+
+window.deleteAddress = async function(index) {
+  if (!confirm("Deseja realmente excluir este endereço?")) return;
+  const user = auth.currentUser;
+  if (!user) return;
+
+  let updatedAddresses = [...window.currentClientData.addresses];
+  updatedAddresses.splice(index, 1);
+
+  try {
+    const clientRef = doc(db, "clients", user.uid);
+    await updateDoc(clientRef, { addresses: updatedAddresses });
+    window.currentClientData.addresses = updatedAddresses;
+    alert("Endereço excluído com sucesso!");
+    window.openClientAccountModal();
+  } catch (error) {
+    alert("Erro ao excluir endereço: " + error.message);
+  }
+};
+
+// Renderiza os endereços salvos na interface do Modal "Minha Conta"
+function renderClientAddressesInAccount() {
+  const container = document.getElementById("client-addresses-list");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const addresses = window.currentClientData?.addresses || [];
+  if (addresses.length === 0) {
+    container.innerHTML = `<p style="font-size:0.85rem; color:#777;">Nenhum endereço cadastrado.</p>`;
+    return;
+  }
+
+  addresses.forEach((addr, idx) => {
+    container.innerHTML += `
+      <div style="border: 1px solid #ddd; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 0.9rem; background: #fafafa;">
+        <p><strong>${addr.rua}, Nº ${addr.numero}</strong> - ${addr.bairro}, ${addr.cidade}</p>
+        <p style="color: #666; font-size: 0.8rem;">Ref: ${addr.referencia || 'Nenhuma'} | Comp: ${addr.complemento || 'Nenhum'}</p>
+        <div style="margin-top: 6px; display: flex; gap: 10px;">
+          <button type="button" onclick="openAddressModal(${idx})" style="background:none; border:none; color:#2980b9; cursor:pointer; font-weight:bold;">Editar</button>
+          <button type="button" onclick="deleteAddress(${idx})" style="background:none; border:none; color:#c0392b; cursor:pointer; font-weight:bold;">Excluir</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// Preenche os endereços cadastrados no Checkout e deixa o último pré-selecionado
+function renderCheckoutSavedAddresses() {
+  const select = document.getElementById("checkout-saved-addresses-select");
+  if (!select) return;
+  
+  const addresses = window.currentClientData?.addresses || [];
+  select.innerHTML = `<option value="">-- Cadastrar novo ou selecionar --</option>`;
+
+  addresses.forEach((addr, idx) => {
+    select.innerHTML += `<option value="${idx}">${addr.rua}, ${addr.numero} - ${addr.bairro}</option>`;
+  });
+
+  if (addresses.length > 0) {
+    // Pré-seleciona o último endereço cadastrado
+    const lastIndex = addresses.length - 1;
+    select.value = lastIndex;
+    window.fillCheckoutWithAddress(lastIndex);
+  }
+}
+
+window.onCheckoutAddressChange = function(selectElement) {
+  const idx = selectElement.value;
+  if (idx === "") {
+    // Limpa os campos para preenchimento manual de um endereço novo
+    document.getElementById("checkout-cep").value = "";
+    document.getElementById("checkout-cidade").value = "";
+    document.getElementById("checkout-bairro").value = "";
+    document.getElementById("checkout-rua").value = "";
+    document.getElementById("checkout-numero").value = "";
+    document.getElementById("checkout-complemento").value = "";
+    document.getElementById("checkout-referencia").value = "";
+  } else {
+    window.fillCheckoutWithAddress(parseInt(idx));
+  }
+};
+
+window.fillCheckoutWithAddress = function(index) {
+  const addr = window.currentClientData?.addresses[index];
+  if (!addr) return;
+  document.getElementById("checkout-cep").value = addr.cep || "";
+  document.getElementById("checkout-cidade").value = addr.cidade || "";
+  document.getElementById("checkout-bairro").value = addr.bairro || "";
+  document.getElementById("checkout-rua").value = addr.rua || "";
+  document.getElementById("checkout-numero").value = addr.numero || "";
+  document.getElementById("checkout-complemento").value = addr.complemento || "";
+  document.getElementById("checkout-referencia").value = addr.referencia || "";
+};

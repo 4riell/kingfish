@@ -11,7 +11,8 @@ import {
   getFirestore, 
   doc, 
   setDoc, 
-  getDoc 
+  getDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 export function setupClientAuth(app, db, auth) {
@@ -56,11 +57,19 @@ export async function loginWithEmail(auth, email, password) {
   }
 }
 
-export async function registerWithEmail(auth, db, name, email, password, confirmPassword, phone) {
+export async function registerWithEmail(auth, db, name, email, password, confirmPassword, phone, verificationCodeInput) {
   if (password !== confirmPassword) {
     alert("As senhas não coincidem!");
     return;
   }
+  
+  // Validação do código de confirmação do número
+  const expectedCode = window.currentVerificationCode;
+  if (!expectedCode || verificationCodeInput !== expectedCode) {
+    alert("Código de confirmação do número inválido!");
+    return;
+  }
+
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await ensureClientDocExists(userCredential.user, db, name, phone);
@@ -71,6 +80,21 @@ export async function registerWithEmail(auth, db, name, email, password, confirm
   }
 }
 
+// Simulação / Envio de código de confirmação para o número de WhatsApp/Telefone
+window.sendPhoneVerificationCode = function() {
+  const phone = document.getElementById("reg-phone")?.value;
+  if (!phone || phone.length < 8) {
+    alert("Digite um número de telefone válido primeiro.");
+    return;
+  }
+  const code = Math.floor(1000 + Math.random() * 9000).toString();
+  window.currentVerificationCode = code;
+  alert(`[SIMULAÇÃO DE SMS/WHATSAPP] Seu código de confirmação para o número ${phone} é: ${code}`);
+  
+  const confirmGroup = document.getElementById("phone-verification-group");
+  if (confirmGroup) confirmGroup.style.display = "block";
+};
+
 async function ensureClientDocExists(user, db, name = "Cliente", phone = "") {
   const userRef = doc(db, "clients", user.uid);
   const snap = await getDoc(userRef);
@@ -79,7 +103,7 @@ async function ensureClientDocExists(user, db, name = "Cliente", phone = "") {
       name: name || user.displayName || "Cliente",
       email: user.email,
       phone: phone,
-      addresses: [],       // Lista de endereços cadastrados
+      addresses: [],       // Lista dinâmica de endereços
       savedOrders: [],     // Histórico de pedidos
       orderCount: 0,       // Número de vezes que pediu
       coupons: ["BEMVINDO10"], // Cupons disponíveis
