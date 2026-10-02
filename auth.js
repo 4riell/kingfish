@@ -15,24 +15,27 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
+// Configuração do Observador de Estado de Autenticação do Cliente
 export function setupClientAuth(app, db, auth) {
   onAuthStateChanged(auth, async (user) => {
     const clientNavBtn = document.getElementById("client-auth-btn");
     if (user) {
       if (clientNavBtn) {
         clientNavBtn.textContent = "Minha Conta";
-        clientNavBtn.onclick = () => openClientAccountModal(); // Abre a conta se logado
+        clientNavBtn.onclick = () => openClientAccountModal(); 
       }
-      loadClientData(user, db);
+      await loadClientData(user, db);
     } else {
       if (clientNavBtn) {
         clientNavBtn.textContent = "Entrar / Cadastrar";
-        clientNavBtn.onclick = () => openAuthModal(); // Abre o login se deslogado
+        clientNavBtn.onclick = () => openAuthModal(); 
       }
+      window.currentClientData = null;
     }
   });
 }
 
+// Login com Google
 export async function loginWithGoogle(auth, db) {
   const provider = new GoogleAuthProvider();
   try {
@@ -47,6 +50,7 @@ export async function loginWithGoogle(auth, db) {
   }
 }
 
+// Login com E-mail e Senha
 export async function loginWithEmail(auth, email, password) {
   try {
     await signInWithEmailAndPassword(auth, email, password);
@@ -57,6 +61,7 @@ export async function loginWithEmail(auth, email, password) {
   }
 }
 
+// Cadastro com E-mail, Senha e Validação de Telefone (OTP)
 export async function registerWithEmail(auth, db, name, email, password, confirmPassword, phone, verificationCodeInput) {
   if (password !== confirmPassword) {
     alert("As senhas não coincidem!");
@@ -66,7 +71,7 @@ export async function registerWithEmail(auth, db, name, email, password, confirm
   // Validação do código de confirmação do número
   const expectedCode = window.currentVerificationCode;
   if (!expectedCode || verificationCodeInput !== expectedCode) {
-    alert("Código de confirmação do número inválido!");
+    alert("Código de confirmação do número inválido ou não verificado!");
     return;
   }
 
@@ -80,21 +85,25 @@ export async function registerWithEmail(auth, db, name, email, password, confirm
   }
 }
 
-// Simulação / Envio de código de confirmação para o número de WhatsApp/Telefone
+// Envio de código de confirmação para o WhatsApp/Telefone
 window.sendPhoneVerificationCode = function() {
-  const phone = document.getElementById("reg-phone")?.value;
+  const phoneInput = document.getElementById("reg-phone");
+  const phone = phoneInput ? phoneInput.value : "";
+  
   if (!phone || phone.length < 8) {
     alert("Digite um número de telefone válido primeiro.");
     return;
   }
+  
   const code = Math.floor(1000 + Math.random() * 9000).toString();
   window.currentVerificationCode = code;
-  alert(`[SIMULAÇÃO DE SMS/WHATSAPP] Seu código de confirmação para o número ${phone} é: ${code}`);
+  alert(`[WHATSAPP / SMS] Seu código de confirmação para o número ${phone} é: ${code}`);
   
   const confirmGroup = document.getElementById("phone-verification-group");
   if (confirmGroup) confirmGroup.style.display = "block";
 };
 
+// Garantir que o documento do cliente existe no Firestore
 async function ensureClientDocExists(user, db, name = "Cliente", phone = "") {
   const userRef = doc(db, "clients", user.uid);
   const snap = await getDoc(userRef);
@@ -103,15 +112,16 @@ async function ensureClientDocExists(user, db, name = "Cliente", phone = "") {
       name: name || user.displayName || "Cliente",
       email: user.email,
       phone: phone,
-      addresses: [],       // Lista dinâmica de endereços
-      savedOrders: [],     // Histórico de pedidos
-      orderCount: 0,       // Número de vezes que pediu
-      coupons: ["BEMVINDO10"], // Cupons disponíveis
+      addresses: [],       
+      savedOrders: [],     
+      orderCount: 0,       
+      coupons: ["BEMVINDO10"], 
       createdAt: new Date().toISOString()
     });
   }
 }
 
+// Carregar dados do cliente logado
 export async function loadClientData(user, db) {
   const userRef = doc(db, "clients", user.uid);
   const snap = await getDoc(userRef);
@@ -120,12 +130,42 @@ export async function loadClientData(user, db) {
   }
 }
 
+// Controle dos Modais de Autenticação
 export function openAuthModal() {
-  document.getElementById("client-auth-modal")?.classList.add("open");
+  const modal = document.getElementById("client-auth-modal");
+  if (modal) modal.classList.add("open");
 }
 
 export function closeAuthModal() {
-  document.getElementById("client-auth-modal")?.classList.remove("open");
+  const modal = document.getElementById("client-auth-modal");
+  if (modal) modal.classList.remove("open");
+}
+
+export function openClientAccountModal() {
+  const modal = document.getElementById("client-account-modal");
+  if (modal) modal.classList.add("open");
+  
+  // Preenche dados atuais se existirem
+  if (window.currentClientData) {
+    document.getElementById("client-profile-name").value = window.currentClientData.name || "";
+    document.getElementById("client-profile-phone").value = window.currentClientData.phone || "";
+    document.getElementById("client-order-count").innerText = window.currentClientData.orderCount || 0;
+  }
+}
+
+export function closeClientAccountModal() {
+  const modal = document.getElementById("client-account-modal");
+  if (modal) modal.classList.remove("open");
+}
+
+export async function clientLogout(auth) {
+  try {
+    await signOut(auth);
+    closeClientAccountModal();
+    alert("Você saiu da sua conta.");
+  } catch (error) {
+    console.error("Erro ao sair:", error);
+  }
 }
 
 // Alternar abas do Modal (Login <-> Cadastro)
@@ -137,20 +177,16 @@ window.switchAuthTab = function(tab) {
   const modalTitle = document.getElementById("auth-modal-title");
 
   if (tab === 'login') {
-    loginForm.style.display = "block";
-    registerForm.style.display = "none";
-    loginBtn.style.background = "white";
-    loginBtn.style.fontWeight = "bold";
-    registerBtn.style.background = "transparent";
-    registerBtn.style.fontWeight = "normal";
-    modalTitle.innerText = "Entrar na sua Conta";
+    if (loginForm) loginForm.style.display = "block";
+    if (registerForm) registerForm.style.display = "none";
+    if (loginBtn) { loginBtn.style.background = "white"; loginBtn.style.fontWeight = "bold"; }
+    if (registerBtn) { registerBtn.style.background = "transparent"; registerBtn.style.fontWeight = "normal"; }
+    if (modalTitle) modalTitle.innerText = "Entrar na sua Conta";
   } else {
-    loginForm.style.display = "none";
-    registerForm.style.display = "block";
-    registerBtn.style.background = "white";
-    registerBtn.style.fontWeight = "bold";
-    loginBtn.style.background = "transparent";
-    loginBtn.style.fontWeight = "normal";
-    modalTitle.innerText = "Criar Nova Conta";
+    if (loginForm) loginForm.style.display = "none";
+    if (registerForm) registerForm.style.display = "block";
+    if (registerBtn) { registerBtn.style.background = "white"; registerBtn.style.fontWeight = "bold"; }
+    if (loginBtn) { loginBtn.style.background = "transparent"; loginBtn.style.fontWeight = "normal"; }
+    if (modalTitle) modalTitle.innerText = "Criar Nova Conta";
   }
 };

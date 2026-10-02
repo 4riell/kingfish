@@ -1510,3 +1510,17 @@ window.fillCheckoutWithAddress = function(index) {
 window.openNewAddressForm = function() {
   window.openAddressModal(null);
 };
+
+// Exemplo de como deve ser chamada a função no script principal ao submeter o formulário de cadastro:
+function handleEmailRegister(event) {
+  event.preventDefault();
+  const name = document.getElementById("reg-name").value;
+  const email = document.getElementById("reg-email").value;
+  const phone = document.getElementById("reg-phone").value;
+  const password = document.getElementById("reg-password").value;
+  const confirmPassword = document.getElementById("reg-confirm-password").value;
+  const verificationCode = document.getElementById("reg-verification-code")?.value || "";
+
+  // Chama a função exportada do auth.js
+  registerWithEmail(auth, db, name, email, password, confirmPassword, phone, verificationCode);
+}
