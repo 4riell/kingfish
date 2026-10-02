@@ -18,10 +18,16 @@ export function setupClientAuth(app, db, auth) {
   onAuthStateChanged(auth, async (user) => {
     const clientNavBtn = document.getElementById("client-auth-btn");
     if (user) {
-      if (clientNavBtn) clientNavBtn.textContent = "Minha Conta";
+      if (clientNavBtn) {
+        clientNavBtn.textContent = "Minha Conta";
+        clientNavBtn.onclick = () => openClientAccountModal(); // Abre a conta se logado
+      }
       loadClientData(user, db);
     } else {
-      if (clientNavBtn) clientNavBtn.textContent = "Entrar / Cadastrar";
+      if (clientNavBtn) {
+        clientNavBtn.textContent = "Entrar / Cadastrar";
+        clientNavBtn.onclick = () => openAuthModal(); // Abre o login se deslogado
+      }
     }
   });
 }

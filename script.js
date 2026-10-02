@@ -61,22 +61,29 @@ setupClientAuth(app, db, auth);
 // Tornando as funções de autenticação do cliente acessíveis globalmente no escopo do HTML (window)
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
+window.openClientAccountModal = () => document.getElementById("client-account-modal")?.classList.add("open");
+window.closeClientAccountModal = () => document.getElementById("client-account-modal")?.classList.remove("open");
 
 // Funções globais auxiliares para os formulários de login/cadastro do cliente no HTML
 window.handleGoogleLogin = () => loginWithGoogle(auth, db);
 
 window.handleEmailAuth = async (e) => {
   e.preventDefault();
-  const email = document.getElementById("client-email").value;
-  const password = document.getElementById("client-password").value;
+  const email = document.getElementById("login-email").value; // Corrigido para login-email
+  const password = document.getElementById("login-password").value; // Corrigido para login-password
   await loginWithEmail(auth, email, password);
 };
 
 window.handleEmailRegister = async (e) => {
   e.preventDefault();
-  const email = document.getElementById("client-email").value;
-  const password = document.getElementById("client-password").value;
-  await registerWithEmail(auth, db, email, password);
+  const name = document.getElementById("reg-name").value;
+  const email = document.getElementById("reg-email").value;
+  const phone = document.getElementById("reg-phone").value;
+  const password = document.getElementById("reg-password").value;
+  const confirmPassword = document.getElementById("reg-confirm-password").value;
+  
+  // Chamando a função de registro importada do auth.js passando os parâmetros corretos
+  await registerWithEmail(auth, db, name, email, password, confirmPassword, phone);
 };
 
 let cart = [];
