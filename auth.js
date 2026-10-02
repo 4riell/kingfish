@@ -73,9 +73,10 @@ async function ensureClientDocExists(user, db, name = "Cliente", phone = "") {
       name: name || user.displayName || "Cliente",
       email: user.email,
       phone: phone,
-      addresses: [],
-      savedOrders: [],
-      coupons: ["BEMVINDO10"],
+      addresses: [],       // Lista de endereços cadastrados
+      savedOrders: [],     // Histórico de pedidos
+      orderCount: 0,       // Número de vezes que pediu
+      coupons: ["BEMVINDO10"], // Cupons disponíveis
       createdAt: new Date().toISOString()
     });
   }

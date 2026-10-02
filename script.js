@@ -6,7 +6,13 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
-  doc 
+  doc,
+  getDoc,
+  arrayUnion,
+  increment,
+  query,
+  where,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 import { 
   getAuth, 
@@ -1010,8 +1016,81 @@ window.removeRecipeVideo = () => {
 };
 
 // ==========================================
-// 10. CARRINHO E CHECKOUT
+// 10. SALVAR PEDIDO, CUPONS E CHECKOUT
 // ==========================================
+async function saveOrderToClientAccount(orderData, totalValue, deliveryType, discountApplied = 0, couponCodeUsed = null) {
+  const user = auth.currentUser;
+  if (!user) {
+    console.log("Usuário convidado: o pedido não será salvo no histórico de cliente.");
+    return;
+  }
+
+  try {
+    const clientRef = doc(db, "clients", user.uid);
+    await updateDoc(clientRef, {
+      savedOrders: arrayUnion({
+        date: new Date().toISOString(),
+        items: orderData,
+        total: totalValue,
+        type: deliveryType,
+        discount: discountApplied,
+        coupon: couponCodeUsed
+      }),
+      orderCount: increment(1)
+    });
+    console.log("Pedido salvo com sucesso na conta do cliente!");
+  } catch (error) {
+    console.error("Erro ao salvar pedido na conta do cliente:", error);
+  }
+}
+
+async function applyDiscountCoupon(couponCode, cartSubtotal) {
+  if (!couponCode) {
+    return { success: false, message: "Digite um código de cupom." };
+  }
+
+  try {
+    const couponsRef = collection(db, "coupons");
+    const q = query(couponsRef, where("code", "==", couponCode.toUpperCase().trim()));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return { success: false, message: "Cupom inválido ou não encontrado." };
+    }
+
+    const couponDoc = querySnapshot.docs[0];
+    const couponData = couponDoc.data();
+
+    if (!couponData.isActive) {
+      return { success: false, message: "Este cupom está inativo." };
+    }
+
+    if (couponData.minPurchase && cartSubtotal < couponData.minPurchase) {
+      return { success: false, message: `Valor mínimo para este cupom é de R$ ${couponData.minPurchase.toFixed(2)}.` };
+    }
+
+    let discountValue = 0;
+    if (couponData.type === "percent") {
+      discountValue = (cartSubtotal * couponData.value) / 100;
+    } else if (couponData.type === "fixed") {
+      discountValue = couponData.value;
+    }
+
+    discountValue = Math.min(discountValue, cartSubtotal);
+
+    return {
+      success: true,
+      discount: discountValue,
+      couponCode: couponData.code,
+      message: `Cupom aplicado com sucesso! Desconto de R$ ${discountValue.toFixed(2)}`
+    };
+
+  } catch (error) {
+    console.error("Erro ao validar cupom:", error);
+    return { success: false, message: "Erro ao validar o cupom. Tente novamente." };
+  }
+}
+
 window.addToCart = function(productId) {
   const product = allProducts.find(p => p.id === productId);
   if (product && product.isOutOfStock) return alert("Produto esgotado.");
@@ -1081,7 +1160,7 @@ window.openDeliveryModal = () => {
 
 window.closeDeliveryModal = () => document.getElementById("delivery-modal")?.classList.remove("open");
 
-window.sendOrderToWhatsApp = function() {
+window.sendOrderToWhatsApp = async function() {
   if (cart.length === 0) return alert("Seu carrinho está vazio!");
   const deliveryType = document.getElementById("checkout-type")?.value;
   let deliveryDetails = "";
@@ -1107,16 +1186,40 @@ window.sendOrderToWhatsApp = function() {
   if (!pagamento) return alert("Selecione a forma de pagamento.");
   if (pagamento === "DINHEIRO" && !troco) return alert("Informe se precisa de troco.");
 
+  let itemsSubtotal = 0;
+  cart.forEach(item => {
+    itemsSubtotal += item.price * item.quantity;
+  });
+
+  let discountAmount = 0;
+  let activeCoupon = null;
+
+  const couponInput = document.getElementById("coupon-input")?.value;
+  if (couponInput) {
+    const couponResult = await applyDiscountCoupon(couponInput, itemsSubtotal);
+    if (couponResult.success) {
+      discountAmount = couponResult.discount;
+      activeCoupon = couponResult.couponCode;
+    } else {
+      alert(couponResult.message);
+      return;
+    }
+  }
+
+  const totalGeral = (itemsSubtotal - discountAmount) + taxaDelivery;
+
+  await saveOrderToClientAccount(cart, totalGeral, deliveryType, discountAmount, activeCoupon);
+
   let message = "*NOVO PEDIDO - PESCADOS CAPARAÓ*\n\n*ITENS DO PEDIDO:*\n";
-  let itemsTotal = 0;
   cart.forEach(item => {
     const subtotal = item.price * item.quantity;
-    itemsTotal += subtotal;
     message += `• *${item.name}*\n  Qtd/Peso: ${item.quantity} ${item.unit} | R$ ${subtotal.toFixed(2)}\n`;
   });
-  const totalGeral = itemsTotal + taxaDelivery;
 
-  message += `\n*RESUMO DA COMPRA:*\nSubtotal: R$ ${itemsTotal.toFixed(2)}`;
+  message += `\n*RESUMO DA COMPRA:*\nSubtotal: R$ ${itemsSubtotal.toFixed(2)}`;
+  if (discountAmount > 0) {
+    message += `\nDesconto (${activeCoupon}): -R$ ${discountAmount.toFixed(2)}`;
+  }
   if (deliveryType === "entrega") message += `\nTaxa de Entrega: R$ ${taxaDelivery.toFixed(2)}`;
   message += `\n*Total Geral:* R$ ${totalGeral.toFixed(2)}\n\n*DADOS DE ENTREGA:*${deliveryDetails}\n\n*PAGAMENTO:*\n*Forma:* ${pagamento}`;
   if (pagamento === "DINHEIRO" && troco) message += `\n*Troco para:* ${troco}`;

@@ -649,6 +649,50 @@
     </div>
   </div>
 
+  <!-- MODAL MINHA CONTA DO CLIENTE -->
+  <div class="modal-overlay" id="client-account-modal">
+    <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h2>Minha Conta</h2>
+        <button class="close-modal-btn" onclick="closeClientAccountModal()">&times;</button>
+      </div>
+      
+      <div style="padding: 10px 0;">
+        <!-- Dados Pessoais -->
+        <h3>Seus Dados</h3>
+        <form onsubmit="updateClientProfile(event)" style="margin-bottom: 20px;">
+          <div class="form-group">
+            <label>Nome:</label>
+            <input type="text" id="client-profile-name" required>
+          </div>
+          <div class="form-group">
+            <label>Telefone / WhatsApp:</label>
+            <input type="text" id="client-profile-phone" required>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%;">Salvar Alterações</button>
+        </form>
+
+        <!-- Endereços -->
+        <h3>Meus Endereços</h3>
+        <div id="client-addresses-list" style="margin-bottom: 15px;"></div>
+        <button type="button" class="btn-secondary" onclick="openNewAddressForm()" style="width: 100%; margin-bottom: 20px;">+ Adicionar Novo Endereço</button>
+
+        <!-- Cupons -->
+        <h3>Meus Cupons</h3>
+        <div id="client-coupons-list" style="background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 20px;">
+          <!-- Preenchido via JS -->
+        </div>
+
+        <!-- Histórico e Estatísticas -->
+        <h3>Histórico de Pedidos</h3>
+        <p>Total de pedidos realizados: <strong id="client-order-count">0</strong></p>
+        <div id="client-orders-history" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 8px; border-radius: 6px;"></div>
+
+        <button type="button" onclick="clientLogout()" style="width: 100%; background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 6px; margin-top: 20px; cursor: pointer; font-weight: bold;">Sair da Conta</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="script.js"></script>
 </body>
 </html>
