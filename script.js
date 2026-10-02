@@ -61,8 +61,83 @@ setupClientAuth(app, db, auth);
 // Tornando as funções de autenticação do cliente acessíveis globalmente no escopo do HTML (window)
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
-window.openClientAccountModal = () => document.getElementById("client-account-modal")?.classList.add("open");
+
+// Substitua ou adicione estas funções no seu script.js
+window.openClientAccountModal = () => {
+  const modal = document.getElementById("client-account-modal");
+  if (modal) {
+    modal.classList.add("open");
+    // Preenche os campos com os dados atuais do cliente logado
+    if (window.currentClientData) {
+      document.getElementById("client-profile-name").value = window.currentClientData.name || "";
+      document.getElementById("client-profile-phone").value = window.currentClientData.phone || "";
+      document.getElementById("client-order-count").innerText = window.currentClientData.orderCount || 0;
+      
+      // Renderizar histórico de pedidos se houver
+      const historyContainer = document.getElementById("client-orders-history");
+      if (historyContainer) {
+        historyContainer.innerHTML = "";
+        if (window.currentClientData.savedOrders && window.currentClientData.savedOrders.length > 0) {
+          window.currentClientData.savedOrders.forEach(order => {
+            const dateStr = new Date(order.date).toLocaleDateString('pt-BR');
+            historyContainer.innerHTML += `<div style="font-size:0.85rem; border-bottom:1px solid #eee; padding:5px 0;">Data: ${dateStr} - Total: R$ ${order.total.toFixed(2)} (${order.type})</div>`;
+          });
+        } else {
+          historyContainer.innerHTML = `<p style="font-size:0.85rem; color:#777;">Nenhum pedido realizado ainda.</p>`;
+        }
+      }
+
+      // Renderizar cupons
+      const couponsContainer = document.getElementById("client-coupons-list");
+      if (couponsContainer) {
+        couponsContainer.innerHTML = "";
+        if (window.currentClientData.coupons && window.currentClientData.coupons.length > 0) {
+          window.currentClientData.coupons.forEach(coupon => {
+            couponsContainer.innerHTML += `<span style="display:inline-block; background:#eef2f5; padding:4px 8px; border-radius:4px; margin-right:5px; font-weight:bold; font-size:0.9rem;">${coupon}</span>`;
+          });
+        } else {
+          couponsContainer.innerHTML = `<span style="font-size:0.85rem; color:#777;">Nenhum cupom disponível.</span>`;
+        }
+      }
+    }
+  }
+};
+
 window.closeClientAccountModal = () => document.getElementById("client-account-modal")?.classList.remove("open");
+
+window.updateClientProfile = async function(e) {
+  e.preventDefault();
+  const user = auth.currentUser;
+  if (!user) return alert("Você precisa estar logado.");
+
+  const newName = document.getElementById("client-profile-name").value;
+  const newPhone = document.getElementById("client-profile-phone").value;
+
+  try {
+    const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js");
+    const clientRef = doc(db, "clients", user.uid);
+    await updateDoc(clientRef, {
+      name: newName,
+      phone: newPhone
+    });
+    window.currentClientData.name = newName;
+    window.currentClientData.phone = newPhone;
+    alert("Dados atualizados com sucesso!");
+    window.closeClientAccountModal();
+  } catch (error) {
+    alert("Erro ao atualizar dados: " + error.message);
+  }
+};
+
+window.clientLogout = async function() {
+  try {
+    await signOut(auth);
+    window.closeClientAccountModal();
+    window.location.reload();
+  } catch (error) {
+    console.error("Erro ao sair:", error);
+  }
+};
 
 // Funções globais auxiliares para os formulários de login/cadastro do cliente no HTML
 window.handleGoogleLogin = () => loginWithGoogle(auth, db);
@@ -103,11 +178,14 @@ let currentRecipeVideo = null;
 // ==========================================
 // 2. INICIALIZAÇÃO E AUTENTICAÇÃO
 // ==========================================
+// Defina aqui o e-mail que é o administrador do sistema
+const ADMIN_EMAIL = "admin@teste.com"; // Troque pelo e-mail do painel admin
+
 onAuthStateChanged(auth, (user) => {
   isAuthResolved = true;
   const adminBar = document.getElementById("admin-bar");
   
-  if (user) {
+  if (user && user.email === ADMIN_EMAIL) {
     isAdminLoggedIn = true;
     if (adminBar) adminBar.style.display = "flex";
   } else {
