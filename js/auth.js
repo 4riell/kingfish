@@ -131,20 +131,36 @@ window.registerWithEmail = async function(e) {
   }
 };
 
-// Envio de código de confirmação para o WhatsApp/Telefone
+// Envio de código de confirmação para o WhatsApp/Telefone de verdade
 window.sendPhoneVerificationCode = function() {
   const phoneInput = document.getElementById("reg-phone");
-  const phone = phoneInput ? phoneInput.value : "";
+  let phone = phoneInput ? phoneInput.value.replace(/\D/g, "") : "";
   
-  if (!phone || phone.length < 8) {
-    alert("Digite um número de telefone válido primeiro.");
+  if (!phone || phone.length < 10) {
+    alert("Digite um número de celular válido com DDD (ex: 28999999999).");
     return;
   }
+
+  // Adiciona o DDI do Brasil (55) caso não tenha
+  if (!phone.startsWith("55")) {
+    phone = "55" + phone;
+  }
   
+  // Gera um código numérico de 4 dígitos aleatório
   const code = Math.floor(1000 + Math.random() * 9000).toString();
   window.currentVerificationCode = code;
-  alert(`[WHATSAPP / SMS] Seu código de confirmação para o número ${phone} é: ${code}`);
+
+  // Mensagem que vai para o WhatsApp
+  const message = `*PESCADOS CAPARAÓ - VERIFICAÇÃO*\n\nOlá! Seu código de confirmação para cadastro na peixaria é: *${code}*`;
+
+  // Abre o WhatsApp para enviar o código para o número do cliente cadastrado
+  const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   
+  // Abre em uma nova aba para o disparo da mensagem
+  window.open(whatsappUrl, "_blank");
+
+  alert("O WhatsApp foi aberto para o envio do código de confirmação ao seu número. Verifique a mensagem recebida e digite o código abaixo.");
+
   const confirmGroup = document.getElementById("phone-verification-group");
   if (confirmGroup) confirmGroup.style.display = "block";
 };
