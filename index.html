@@ -103,7 +103,7 @@
   <!-- COMPONENTE DE MODAIS -->
   <div id="component-modais"></div>
 
-  <!-- SCRIPT CARREGADOR DE COMPONENTES -->
+  <!-- SCRIPT CARREGADOR DE COMPONENTES E CONEXÃO -->
   <script>
     async function loadComponents() {
       const components = [
@@ -113,28 +113,27 @@
         { id: 'component-modais', url: 'components/modais.html' }
       ];
 
-      // Busca e insere o HTML de todos os componentes
+      // Busca e insere o HTML de todos os componentes de forma paralela/sequencial
       for (const comp of components) {
         try {
           const response = await fetch(comp.url);
           if (response.ok) {
             document.getElementById(comp.id).innerHTML = await response.text();
           } else {
-            console.error(`Falha ao carregar ${comp.url}: ${response.status}`);
+            console.error(`Falha ao carregar ${comp.url}: Status ${response.status}`);
           }
         } catch (error) {
-          console.error(`Erro ao buscar ${comp.url}:`, error);
+          console.error(`Erro de rede ao buscar ${comp.url}:`, error);
         }
       }
 
-      // Após a renderização de todos os componentes no DOM, injeta o script.js
+      // Após injetar todo o HTML dos componentes, carrega o entrypoint principal do Firebase (main.js)
       const mainScript = document.createElement('script');
       mainScript.type = 'module';
-      mainScript.src = 'script.js';
+      mainScript.src = 'main.js';
       document.body.appendChild(mainScript);
     }
 
-    // Inicializa o carregamento assim que a página é lida
     document.addEventListener("DOMContentLoaded", loadComponents);
   </script>
 </body>
