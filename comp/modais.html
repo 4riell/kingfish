@@ -1,0 +1,538 @@
+<!-- MODAL DE LOGIN ADMIN -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal-content admin-login-card">
+    <div class="modal-header">
+      <button class="close-modal-btn" onclick="closeLoginModal()">&times;</button>
+    </div>
+    <form onsubmit="handleAdminLogin(event)">
+      <div class="form-group">
+        <label for="admin-email">E-mail do Administrador:</label>
+        <input type="email" id="admin-email" placeholder="admin@email.com" required>
+      </div>
+      <div class="form-group">
+        <label for="admin-password">Senha:</label>
+        <input type="password" id="admin-password" placeholder="Sua senha..." required>
+      </div>
+      <button type="submit" class="btn-primary">Acessar Painel</button>
+      <div style="text-align: center; margin-top: 15px;">
+        <button type="button" onclick="recoverPassword()" style="background:none; border:none; color:var(--primary-blue); text-decoration:underline; cursor:pointer; font-size: 0.9rem;">Esqueceu ou deseja alterar a senha?</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL GERENCIAR CATEGORIAS RECEITAS -->
+<div class="modal-overlay" id="category-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button class="close-modal-btn" onclick="closeCategoryModal()">&times;</button>
+    </div>
+    <div class="form-group">
+      <label>Adicionar Nova Categoria:</label>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="new-category-name" placeholder="Ex: Peixes, Sopas...">
+        <button class="btn-primary" style="width:auto;" onclick="addCategory()">Adicionar</button>
+      </div>
+    </div>
+    <ul id="category-list" style="list-style:none; padding:0; margin-top:15px;"></ul>
+  </div>
+</div>
+
+<!-- MODAL DE CADASTRO E EDIÇÃO DE PRODUTO -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+    <div class="modal-header">
+      <h2 id="modal-product-form-title"></h2>
+      <button class="close-modal-btn" onclick="closeProductModal()">&times;</button>
+    </div>
+    
+    <form id="product-form" onsubmit="handleProductSubmit(event)">
+      <input type="hidden" id="prod-id">
+
+      <div class="form-group">
+        <label>Nome do Produto:</label>
+        <input type="text" id="prod-name" placeholder="Ex: Filé de Tilápia" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Categoria:</label>
+          <select id="prod-category" required>
+            <option value="">Selecione a categoria...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Preço Normal (R$):</label>
+          <input type="number" step="0.01" id="prod-price" placeholder="0.00" required>
+        </div>
+      </div>
+
+      <div class="form-row" id="promo-price-row" style="display: none;">
+        <div class="form-group">
+          <label>Preço em Promoção (R$):</label>
+          <input type="number" step="0.01" id="prod-promo-price" placeholder="0.00">
+        </div>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label for="prod-on-sale" class="checkbox-label" style="margin-right: 15px;">
+          <input type="checkbox" id="prod-on-sale" onchange="togglePromoInput()">
+          <span>Colocar produto em <strong>Promoção</strong></span>
+        </label>
+
+        <label for="prod-out-of-stock" class="checkbox-label">
+          <input type="checkbox" id="prod-out-of-stock">
+          <span>Marcar produto como <strong>Esgotado</strong></span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo de Unidade / Embalagem:</label>
+        <select id="prod-unit">
+          <option value="Kg">Por Kg (Peso Fracionado)</option>
+          <option value="500g">Pacote 500g</option>
+          <option value="Pct 1Kg">Pacote 1Kg</option>
+          <option value="Unidade">Unidade</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Imagens do Produto:</label>
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('prod-images-input').click()">
+          <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+          <p><strong>Clique para buscar</strong> ou arraste e solte as fotos aqui</p>
+          <input type="file" id="prod-images-input" accept="image/*" multiple style="display: none;" onchange="handleImageFileSelect(event)">
+        </div>
+        <div class="images-preview-container" id="images-preview"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Descrição:</label>
+        <textarea id="prod-desc" placeholder="Ex: Filé sem espinho, congelado individualmente..." rows="2"></textarea>
+      </div>
+
+      <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn-save" id="btn-save-product" style="flex:1; padding:10px; border-radius:6px; background:var(--primary-blue); color:white; border:none; cursor:pointer; font-weight:bold;">Salvar Produto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE CADASTRO DE RECEITAS -->
+<div class="modal-overlay" id="recipe-modal">
+  <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+    <div class="modal-header">
+      <h2 id="modal-recipe-form-title"></h2>
+      <button class="close-modal-btn" onclick="closeRecipeModal()">&times;</button>
+    </div>
+    
+    <form id="recipe-form" onsubmit="handleRecipeSubmit(event)">
+      <input type="hidden" id="recipe-id-input" value="">
+
+      <div class="form-group">
+        <label for="recipe-title">Título da Receita:</label>
+        <input type="text" id="recipe-title" required placeholder="Ex: Bacalhau à Brás">
+      </div>
+
+      <div class="form-group">
+        <label for="recipe-category">Categoria da Receita:</label>
+        <select id="recipe-category" required onchange="populateRecipeProductSelect(this.value)">
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="recipe-prod-select">Produto Relacionado:</label>
+        <select id="recipe-prod-select">
+          <option value="">Nenhum produto associado</option>
+        </select>
+      </div>
+
+      <!-- 1. FOTOS ANTES DA DESCRIÇÃO -->
+      <div class="form-group">
+        <label>Fotos (Antes da Descrição):</label>
+        <div class="drop-zone" onclick="document.getElementById('recipe-images-1-input').click()">
+          <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+          <p><strong>Clique para buscar</strong> ou arraste as fotos aqui</p>
+          <input type="file" id="recipe-images-1-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImages1Select(event)">
+        </div>
+        <div class="images-preview-container" id="recipe-images-1-preview"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="recipe-desc-input">Descrição da Receita (Resumo do prato):</label>
+        <textarea id="recipe-desc-input" rows="2" placeholder="Ex: Um prato delicioso..."></textarea>
+      </div>
+
+      <!-- 2. FOTOS ANTES DOS INGREDIENTES/PREPARO -->
+      <div class="form-group">
+        <label>Fotos (Antes dos Ingredientes / Modo de Preparo):</label>
+        <div class="drop-zone" onclick="document.getElementById('recipe-images-2-input').click()">
+          <i class="fa-solid fa-cloud-arrow-up drop-zone-icon"></i>
+          <p><strong>Clique para buscar</strong> ou arraste as fotos aqui</p>
+          <input type="file" id="recipe-images-2-input" accept="image/*" multiple style="display: none;" onchange="handleRecipeImages2Select(event)">
+        </div>
+        <div class="images-preview-container" id="recipe-images-2-preview"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="recipe-ingredients">Ingredientes:</label>
+        <textarea id="recipe-ingredients" rows="4" placeholder="Ex: - 500g de bacalhau..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="recipe-instructions">Modo de Preparo:</label>
+        <textarea id="recipe-instructions" rows="4" placeholder="Ex: 1. Refogue a cebola..."></textarea>
+      </div>
+
+      <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
+        <button type="submit" class="btn-save" id="btn-save-recipe" style="flex:1; padding:10px; border-radius:6px; background:var(--primary-blue); color:white; border:none; cursor:pointer; font-weight:bold;">Salvar Receita</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE DETALHES DA RECEITA -->
+<div class="modal-overlay" id="recipe-detail-modal">
+  <div class="modal-content modal-detail recipe-sheet" id="recipe-a4-sheet" style="max-height: 90vh; overflow-y: auto;">
+    <div class="modal-header" style="border-bottom: none; justify-content: center; position: relative;">
+      <h2 id="modal-recipe-title" class="recipe-sheet-title" style="text-align: center; width: 100%;"></h2>
+      <button class="close-modal-btn" onclick="closeRecipeDetailModal()" style="position: absolute; right: 0; top: 0;">&times;</button>
+    </div>
+    
+    <div class="modal-detail-body recipe-sheet-content">
+      
+      <!-- 1. CARROSSEL ANTES DA DESCRIÇÃO -->
+      <div id="recipe-carousel-1" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 15px; text-align:center;">
+        <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
+          <div id="carousel-images-1" data-index="0" style="display:flex; transition:transform 0.3s ease;"></div>
+        </div>
+        <button type="button" class="carousel-btn prev" onclick="moveRecipeModalCarousel('carousel-images-1', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%; z-index:10;"><i class="fa-solid fa-chevron-left"></i></button>
+        <button type="button" class="carousel-btn next" onclick="moveRecipeModalCarousel('carousel-images-1', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%; z-index:10;"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="carousel-dots" id="carousel-dots-1" style="margin-top: 8px; display: flex; justify-content: center; gap: 5px;"></div>
+      </div>
+
+      <!-- DESCRIÇÃO -->
+      <p id="modal-recipe-desc" class="recipe-sheet-desc" style="text-align: center; font-size: 1.1rem; margin-bottom: 20px;"></p>
+      
+      <!-- 2. CARROSSEL ANTES DOS INGREDIENTES -->
+      <div id="recipe-carousel-2" class="recipe-carousel" style="display:none; position:relative; margin-bottom: 20px; text-align:center;">
+        <div class="carousel-track-container" style="overflow:hidden; border-radius:8px;">
+          <div id="carousel-images-2" data-index="0" style="display:flex; transition:transform 0.3s ease;"></div>
+        </div>
+        <button type="button" class="carousel-btn prev" onclick="moveRecipeModalCarousel('carousel-images-2', -1)" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%; z-index:10;"><i class="fa-solid fa-chevron-left"></i></button>
+        <button type="button" class="carousel-btn next" onclick="moveRecipeModalCarousel('carousel-images-2', 1)" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#fff; border:none; padding:8px 12px; cursor:pointer; border-radius:50%; z-index:10;"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="carousel-dots" id="carousel-dots-2" style="margin-top: 8px; display: flex; justify-content: center; gap: 5px;"></div>
+      </div>
+
+      <!-- INGREDIENTES -->
+      <div style="margin-top: 20px;">
+        <h3>Ingredientes:</h3>
+        <p id="modal-recipe-ingredients" class="modal-desc"></p>
+      </div>
+
+      <!-- MODO DE PREPARO -->
+      <div style="margin-top: 20px;">
+        <h3>Modo de Preparo:</h3>
+        <p id="modal-recipe-instructions" class="modal-desc"></p>
+      </div>
+
+      <!-- VÍDEO DA RECEITA -->
+      <div id="modal-recipe-video-container" style="margin-top: 20px; width: 100%; text-align:center;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE DETALHES DO PRODUTO -->
+<div class="modal-overlay" id="product-detail-modal">
+  <div class="modal-content modal-detail">
+    <div class="modal-header">
+      <h2 id="modal-product-title"></h2>
+      <button class="close-modal-btn" onclick="closeProductDetailModal()">&times;</button>
+    </div>
+    <div class="modal-detail-body">
+      <div class="modal-detail-media" id="modal-product-media" style="overflow:hidden;"></div>
+      <div class="modal-detail-info">
+        <p id="modal-product-desc" class="modal-desc"></p>
+        <div id="modal-product-price"></div>
+        <button id="modal-product-buy-btn" class="add-cart-btn" style="margin-top: 15px; width: 100%;"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE DADOS DE ENTREGA E PAGAMENTO -->
+<div class="modal-overlay" id="delivery-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button class="close-modal-btn" onclick="closeDeliveryModal()">&times;</button>
+    </div>
+    
+    <div class="checkout-form-container" id="checkout-form-container" style="padding: 0.5rem 0;">
+      <div class="form-group">
+        <label>Tipo de Pedido:</label>
+        <select id="checkout-type" onchange="toggleDeliveryFields()">
+          <option value="retirada">Retirada no Balcão</option>
+          <option value="entrega">Entrega (Taxa R$5,00)</option>
+        </select>
+      </div>
+
+      <!-- CAMPOS DE ENDEREÇO (EXIBIDOS PARA ENTREGA) -->
+      <div id="delivery-fields" style="display: none;">
+        <div class="form-group">
+          <label for="checkout-cep">CEP:</label>
+          <input type="text" id="checkout-cep" placeholder="00000-000" maxlength="9" onblur="fetchAddressByCEP()">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkout-cidade">Cidade:</label>
+            <input type="text" id="checkout-cidade" placeholder="Cidade" readonly style="background-color: #eef2f5;">
+          </div>
+          <div class="form-group">
+            <label for="checkout-bairro">Bairro:</label>
+            <input type="text" id="checkout-bairro" placeholder="Bairro">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="checkout-rua">Rua / Logradouro:</label>
+          <input type="text" id="checkout-rua" placeholder="Nome da rua">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkout-numero">Número:</label>
+            <input type="text" id="checkout-numero" placeholder="Ex: 123">
+          </div>
+          <div class="form-group checkbox-group" style="align-self: flex-end; margin-bottom: 10px;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="checkout-sem-numero" onchange="toggleNoNumber(this)">
+              <span>Sem número</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkout-complemento">Complemento:</label>
+            <input type="text" id="checkout-complemento" placeholder="Apto, Bloco, etc.">
+          </div>
+          <div class="form-group">
+            <label for="checkout-referencia">Ponto de Referência:</label>
+            <input type="text" id="checkout-referencia" placeholder="Próximo a...">
+          </div>
+        </div>
+      </div>
+
+      <!-- FORMA DE PAGAMENTO E OBSERVAÇÕES -->
+      <div class="form-group">
+        <label for="checkout-pagamento">Forma de Pagamento:</label>
+        <select id="checkout-pagamento" onchange="toggleTrocoField()">
+          <option value="pix">Pix</option>
+          <option value="credito">Cartão de Crédito</option>
+          <option value="debito">Cartão de Débito</option>
+          <option value="dinheiro">Dinheiro</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="troco-group" style="display: none;">
+        <label for="checkout-troco">Precisa de troco para quanto? (R$):</label>
+        <input type="text" id="checkout-troco" placeholder="Ex: 50.00 ou Não preciso">
+      </div>
+
+      <div class="form-group">
+        <label for="checkout-obs">Observações do Pedido:</label>
+        <textarea id="checkout-obs" rows="2" placeholder="Ex: Tirar a escama, entregar após as 18h..."></textarea>
+      </div>
+    </div>
+
+    <!-- RESUMO FINAL DE VALORES E BOTÃO DE ENVIAR WPP -->
+    <div style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
+      <div class="cart-total" style="font-size: 1.1rem; margin-bottom: 0.8rem;">
+        <span>Total com Entrega:</span>
+        <strong id="modal-total-price">R$ 0,00</strong>
+      </div>
+      <button class="btn-whatsapp" onclick="sendOrderToWhatsApp()">
+        <i class="fa-brands fa-whatsapp"></i> Confirmar e Enviar no WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE LOGIN / CADASTRO DO CLIENTE -->
+<div class="modal-overlay" id="client-auth-modal">
+  <div class="modal-content" style="max-width: 420px;">
+    <div class="modal-header">
+      <h2 id="auth-modal-title">Entrar na sua Conta</h2>
+      <button class="close-modal-btn" onclick="closeAuthModal()">&times;</button>
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px; padding: 10px 0;">
+      
+      <!-- BOTÃO PADRÃO GOOGLE -->
+      <button type="button" class="btn-google-standard" onclick="handleGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.49h4.84c-.21 1.12-.85 2.08-1.81 2.72v2.26h2.92c1.71-1.57 2.69-3.87 2.69-6.63z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.33-1.58-5.04-3.71H.95v2.33C2.43 15.98 5.48 18 9 18z"/>
+          <path fill="#FBBC05" d="M3.96 10.71c-.18-.54-.28-1.12-.28-1.71s.1-1.17.28-1.71V4.96H.95C.35 6.15 0 7.5 0 9s.35 2.85.95 4.04l3.01-2.33z"/>
+          <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.89 11.43 0 9 0 5.48 0 2.43 2.02.95 4.96l3.01 2.33c.71-2.13 2.7-3.71 5.04-3.71z"/>
+        </svg>
+        <span>Continuar com o Google</span>
+      </button>
+
+      <div style="display: flex; align-items: center; text-align: center; color: #888; margin: 5px 0;">
+        <hr style="flex: 1; border: 0; border-top: 1px solid #ddd;">
+        <span style="padding: 0 10px; font-size: 0.85rem;">ou com e-mail</span>
+        <hr style="flex: 1; border: 0; border-top: 1px solid #ddd;">
+      </div>
+
+      <!-- ABAS DE ALTERNAR ENTRE LOGIN E CADASTRO -->
+      <div style="display: flex; background: #eee; border-radius: 6px; padding: 3px;">
+        <button type="button" id="tab-login-btn" style="flex: 1; padding: 8px; border: none; background: white; border-radius: 4px; font-weight: bold; cursor: pointer;" onclick="switchAuthTab('login')">Entrar</button>
+        <button type="button" id="tab-register-btn" style="flex: 1; padding: 8px; border: none; background: transparent; border-radius: 4px; cursor: pointer;" onclick="switchAuthTab('register')">Cadastrar</button>
+      </div>
+
+      <!-- FORMULÁRIO DE LOGIN -->
+      <form id="form-login" onsubmit="handleEmailAuth(event)">
+        <div class="form-group">
+          <label>E-mail:</label>
+          <input type="email" id="login-email" placeholder="seu@email.com" required>
+        </div>
+        <div class="form-group">
+          <label>Senha:</label>
+          <input type="password" id="login-password" placeholder="Sua senha..." required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Entrar</button>
+      </form>
+
+      <!-- FORMULÁRIO DE CADASTRO -->
+      <form id="form-register" style="display: none;" onsubmit="handleEmailRegister(event)">
+        <div class="form-group">
+          <label>Nome Completo:</label>
+          <input type="text" id="reg-name" placeholder="Seu nome" required>
+        </div>
+        <div class="form-group">
+          <label>E-mail:</label>
+          <input type="email" id="reg-email" placeholder="seu@email.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Telefone / WhatsApp:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="tel" id="reg-phone" placeholder="(28) 99999-9999" required style="flex: 1;">
+            <button type="button" class="btn-secondary" onclick="sendPhoneVerificationCode()" style="white-space: nowrap; padding: 0 12px; font-size: 0.85rem;">Enviar Código</button>
+          </div>
+        </div>
+
+        <!-- Grupo oculto para digitar o código de verificação -->
+        <div class="form-group" id="phone-verification-group" style="display: none; background: #f0f4f8; padding: 10px; border-radius: 6px;">
+          <label style="font-size: 0.9rem; color: #333;">Digite o código enviado por WhatsApp:</label>
+          <input type="text" id="reg-verification-code" placeholder="Ex: 4815" maxlength="6">
+        </div>
+
+        <div class="form-group">
+          <label>Senha:</label>
+          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" required>
+        </div>
+        <div class="form-group">
+          <label>Confirmar Senha:</label>
+          <input type="password" id="reg-confirm-password" placeholder="Repita a senha" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px; background-color: var(--accent-gold); color: var(--dark-blue);">Criar Cadastro</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MINHA CONTA DO CLIENTE -->
+<div class="modal-overlay" id="client-account-modal">
+  <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-header">
+      <h2>Minha Conta</h2>
+      <button class="close-modal-btn" onclick="closeClientAccountModal()">&times;</button>
+    </div>
+    
+    <div style="padding: 10px 0;">
+      <!-- Dados Pessoais -->
+      <h3>Seus Dados</h3>
+      <form onsubmit="updateClientProfile(event)" style="margin-bottom: 20px;">
+        <div class="form-group">
+          <label>Nome:</label>
+          <input type="text" id="client-profile-name" required>
+        </div>
+        <div class="form-group">
+          <label>Telefone / WhatsApp:</label>
+          <input type="text" id="client-profile-phone" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%;">Salvar Alterações</button>
+      </form>
+
+      <!-- Endereços -->
+      <h3>Meus Endereços</h3>
+      <div id="client-addresses-list" style="margin-bottom: 15px;"></div>
+      <button type="button" class="btn-secondary" onclick="openNewAddressForm()" style="width: 100%; margin-bottom: 20px;">+ Adicionar Novo Endereço</button>
+
+      <!-- Cupons -->
+      <h3>Meus Cupons</h3>
+      <div id="client-coupons-list" style="background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 20px;">
+        <!-- Preenchido via JS -->
+      </div>
+
+      <!-- Histórico e Estatísticas -->
+      <h3>Histórico de Pedidos</h3>
+      <p>Total de pedidos realizados: <strong id="client-order-count">0</strong></p>
+      <div id="client-orders-history" style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 8px; border-radius: 6px;"></div>
+
+      <button type="button" onclick="clientLogout()" style="width: 100%; background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 6px; margin-top: 20px; cursor: pointer; font-weight: bold;">Sair da Conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE CADASTRO / EDIÇÃO DE ENDEREÇO DO CLIENTE -->
+<div class="modal-overlay" id="address-form-modal">
+  <div class="modal-content" style="max-width: 450px;">
+    <div class="modal-header">
+      <h2>Gerenciar Endereço</h2>
+      <button class="close-modal-btn" onclick="closeAddressModal()">&times;</button>
+    </div>
+    <form id="address-form" onsubmit="handleAddressSubmit(event)">
+      <input type="hidden" id="address-index">
+      <div class="form-group">
+        <label>CEP:</label>
+        <input type="text" id="addr-cep" placeholder="00000-000" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cidade:</label>
+          <input type="text" id="addr-cidade" required>
+        </div>
+        <div class="form-group">
+          <label>Bairro:</label>
+          <input type="text" id="addr-bairro" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Rua / Logradouro:</label>
+        <input type="text" id="addr-rua" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Número:</label>
+          <input type="text" id="addr-numero" required>
+        </div>
+        <div class="form-group">
+          <label>Complemento:</label>
+          <input type="text" id="addr-complemento" placeholder="Apto, Bloco...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ponto de Referência:</label>
+        <input type="text" id="addr-referencia" placeholder="Próximo a..." required>
+      </div>
+      <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px;">Salvar Endereço</button>
+    </form>
+  </div>
+</div>
