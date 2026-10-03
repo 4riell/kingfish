@@ -1,5 +1,5 @@
+// /js/auth.js
 import { 
-  getAuth, 
   signInWithPopup, 
   GoogleAuthProvider, 
   signInWithEmailAndPassword, 
@@ -8,67 +8,113 @@ import {
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 import { 
-  getFirestore, 
   doc, 
   setDoc, 
-  getDoc,
-  updateDoc
+  getDoc 
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { db, auth } from './firebase.js';
 
-// Configuração do Observador de Estado de Autenticação do Cliente
-export function setupClientAuth(app, db, auth) {
-  onAuthStateChanged(auth, async (user) => {
-    const clientNavBtn = document.getElementById("client-auth-btn");
-    if (user) {
-      if (clientNavBtn) {
-        clientNavBtn.textContent = "Minha Conta";
-        clientNavBtn.onclick = () => openClientAccountModal(); 
-      }
-      await loadClientData(user, db);
-    } else {
-      if (clientNavBtn) {
-        clientNavBtn.textContent = "Entrar / Cadastrar";
-        clientNavBtn.onclick = () => openAuthModal(); 
-      }
-      window.currentClientData = null;
+// Observador de Estado de Autenticação do Cliente
+onAuthStateChanged(auth, async (user) => {
+  const clientNavBtn = document.getElementById("client-auth-btn");
+  if (user) {
+    if (clientNavBtn) {
+      clientNavBtn.textContent = "Minha Conta";
+      clientNavBtn.onclick = () => window.openClientAccountModal(); 
     }
-  });
-}
+    await loadClientData(user);
+  } else {
+    if (clientNavBtn) {
+      clientNavBtn.textContent = "Entrar / Cadastrar";
+      clientNavBtn.onclick = () => window.openAuthModal(); 
+    }
+    window.currentClientData = null;
+  }
+});
+
+// ==========================================
+// FUNÇÕES EXPOSTAS NO WINDOW (Para uso nos Onclicks do HTML)
+// ==========================================
+
+window.openAuthModal = function() {
+  const modal = document.getElementById("client-auth-modal");
+  if (modal) modal.classList.add("open");
+};
+
+window.closeAuthModal = function() {
+  const modal = document.getElementById("client-auth-modal");
+  if (modal) modal.classList.remove("open");
+};
+
+window.openClientAccountModal = function() {
+  const modal = document.getElementById("client-account-modal");
+  if (modal) modal.classList.add("open");
+  
+  if (window.currentClientData) {
+    const nameEl = document.getElementById("client-profile-name");
+    const phoneEl = document.getElementById("client-profile-phone");
+    const countEl = document.getElementById("client-order-count");
+    if (nameEl) nameEl.value = window.currentClientData.name || "";
+    if (phoneEl) phoneEl.value = window.currentClientData.phone || "";
+    if (countEl) countEl.innerText = window.currentClientData.orderCount || 0;
+  }
+};
+
+window.closeClientAccountModal = function() {
+  const modal = document.getElementById("client-account-modal");
+  if (modal) modal.classList.remove("open");
+};
 
 // Login com Google
-export async function loginWithGoogle(auth, db) {
+window.loginWithGoogle = async function() {
   const provider = new GoogleAuthProvider();
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    await ensureClientDocExists(user, db, user.displayName, "");
+    await ensureClientDocExists(user, user.displayName, "");
     alert("Login realizado com sucesso!");
-    closeAuthModal();
+    window.closeAuthModal();
   } catch (error) {
     console.error("Erro no login com Google:", error);
-    alert("Erro ao entrar com Google.");
+    alert("Erro ao entrar com Google: " + error.message);
   }
-}
+};
 
 // Login com E-mail e Senha
-export async function loginWithEmail(auth, email, password) {
+window.loginWithEmail = async function(e) {
+  if (e) e.preventDefault();
+  const email = document.getElementById("login-email")?.value;
+  const password = document.getElementById("login-password")?.value;
+  
+  if (!email || !password) {
+    alert("Preencha todos os campos de login.");
+    return;
+  }
+
   try {
     await signInWithEmailAndPassword(auth, email, password);
     alert("Login efetuado com sucesso!");
-    closeAuthModal();
+    window.closeAuthModal();
   } catch (error) {
     alert("Erro ao fazer login: Verifique seu e-mail e senha.");
   }
-}
+};
 
 // Cadastro com E-mail, Senha e Validação de Telefone (OTP)
-export async function registerWithEmail(auth, db, name, email, password, confirmPassword, phone, verificationCodeInput) {
+window.registerWithEmail = async function(e) {
+  if (e) e.preventDefault();
+  const name = document.getElementById("reg-name")?.value;
+  const email = document.getElementById("reg-email")?.value;
+  const password = document.getElementById("reg-password")?.value;
+  const confirmPassword = document.getElementById("reg-confirm-password")?.value;
+  const phone = document.getElementById("reg-phone")?.value;
+  const verificationCodeInput = document.getElementById("reg-verification-code")?.value;
+
   if (password !== confirmPassword) {
     alert("As senhas não coincidem!");
     return;
   }
   
-  // Validação do código de confirmação do número
   const expectedCode = window.currentVerificationCode;
   if (!expectedCode || verificationCodeInput !== expectedCode) {
     alert("Código de confirmação do número inválido ou não verificado!");
@@ -77,13 +123,13 @@ export async function registerWithEmail(auth, db, name, email, password, confirm
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await ensureClientDocExists(userCredential.user, db, name, phone);
+    await ensureClientDocExists(userCredential.user, name, phone);
     alert("Cadastro realizado com sucesso!");
-    closeAuthModal();
+    window.closeAuthModal();
   } catch (error) {
     alert("Erro no cadastro: " + error.message);
   }
-}
+};
 
 // Envio de código de confirmação para o WhatsApp/Telefone
 window.sendPhoneVerificationCode = function() {
@@ -104,7 +150,7 @@ window.sendPhoneVerificationCode = function() {
 };
 
 // Garantir que o documento do cliente existe no Firestore
-async function ensureClientDocExists(user, db, name = "Cliente", phone = "") {
+async function ensureClientDocExists(user, name = "Cliente", phone = "") {
   const userRef = doc(db, "clients", user.uid);
   const snap = await getDoc(userRef);
   if (!snap.exists()) {
@@ -121,52 +167,28 @@ async function ensureClientDocExists(user, db, name = "Cliente", phone = "") {
   }
 }
 
-// Carregar dados do cliente logado
-export async function loadClientData(user, db) {
-  const userRef = doc(db, "clients", user.uid);
-  const snap = await getDoc(userRef);
-  if (snap.exists()) {
-    window.currentClientData = snap.data();
+// Carregar dados do cliente logado do banco de dados
+async function loadClientData(user) {
+  try {
+    const userRef = doc(db, "clients", user.uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      window.currentClientData = snap.data();
+    }
+  } catch (error) {
+    console.error("Erro ao carregar dados do cliente do banco:", error);
   }
 }
 
-// Controle dos Modais de Autenticação
-export function openAuthModal() {
-  const modal = document.getElementById("client-auth-modal");
-  if (modal) modal.classList.add("open");
-}
-
-export function closeAuthModal() {
-  const modal = document.getElementById("client-auth-modal");
-  if (modal) modal.classList.remove("open");
-}
-
-export function openClientAccountModal() {
-  const modal = document.getElementById("client-account-modal");
-  if (modal) modal.classList.add("open");
-  
-  // Preenche dados atuais se existirem
-  if (window.currentClientData) {
-    document.getElementById("client-profile-name").value = window.currentClientData.name || "";
-    document.getElementById("client-profile-phone").value = window.currentClientData.phone || "";
-    document.getElementById("client-order-count").innerText = window.currentClientData.orderCount || 0;
-  }
-}
-
-export function closeClientAccountModal() {
-  const modal = document.getElementById("client-account-modal");
-  if (modal) modal.classList.remove("open");
-}
-
-export async function clientLogout(auth) {
+window.clientLogout = async function() {
   try {
     await signOut(auth);
-    closeClientAccountModal();
+    window.closeClientAccountModal();
     alert("Você saiu da sua conta.");
   } catch (error) {
     console.error("Erro ao sair:", error);
   }
-}
+};
 
 // Alternar abas do Modal (Login <-> Cadastro)
 window.switchAuthTab = function(tab) {
