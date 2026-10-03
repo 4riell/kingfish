@@ -61,7 +61,10 @@ function checkAdminRouteAccess() {
 
 window.addEventListener("hashchange", checkAdminRouteAccess);
 
-document.addEventListener("DOMContentLoaded", () => {
+// ==========================================
+// INICIALIZAÇÃO E MONITORES
+// ==========================================
+function initApp() {
   // Dispara inicializações provenientes de catalogo e receitas
   if (window.setupProductDragAndDrop) window.setupProductDragAndDrop();
   if (window.setupRecipeDragAndDrop) window.setupRecipeDragAndDrop();
@@ -69,4 +72,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.loadProducts) window.loadProducts();
   if (window.loadRecipes) window.loadRecipes();
   if (window.loadCategories) window.loadCategories();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  // Se o DOM já foi carregado (caso do carregamento dinâmico via fetch), executa imediatamente
+  initApp();
+}
