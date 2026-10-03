@@ -113,7 +113,7 @@
         { id: 'component-modais', url: 'components/modais.html' }
       ];
 
-      // Busca e insere o HTML de todos os componentes de forma paralela/sequencial
+      // Busca e insere o HTML de todos os componentes
       for (const comp of components) {
         try {
           const response = await fetch(comp.url);
@@ -127,10 +127,10 @@
         }
       }
 
-      // Após injetar todo o HTML dos componentes, carrega o entrypoint principal do Firebase (main.js)
+      // Após injetar todo o HTML dos componentes, carrega o entrypoint principal dentro da pasta js/[cite: 11]
       const mainScript = document.createElement('script');
       mainScript.type = 'module';
-      mainScript.src = 'main.js';
+      mainScript.src = 'js/main.js';
       document.body.appendChild(mainScript);
     }
 
